@@ -28,12 +28,9 @@ export default async function CartridgesPage({
           <p className="mt-1.5 text-sm text-muted-foreground">Stok, fiyat ve giriş çıkış geçmişini yönetin.</p>
         </div>
         
-        <div className="flex flex-col gap-4 sm:flex-row sm:items-center sm:justify-between">
-          <SearchForm placeholder="Kartuş adına göre ara..." />
-          <div className="flex items-center gap-4">
-            <div className="text-sm text-muted-foreground whitespace-nowrap">
-              Toplam: <span className="font-semibold text-foreground">{metadata.total}</span>
-            </div>
+        <div className="flex flex-col gap-3">
+          <div className="flex items-center justify-between gap-3">
+            <SearchForm placeholder="Kartuş adına göre ara..." />
             <AddEntityDialog 
               title="Yeni Kartuş Ekle"
               description="Sisteme yeni bir kartuş modeli ekleyin."
@@ -47,6 +44,9 @@ export default async function CartridgesPage({
               ]}
             />
           </div>
+          <p className="text-xs text-muted-foreground">
+            Toplam: <span className="font-semibold text-foreground">{metadata.total}</span> kartuş
+          </p>
         </div>
       </div>
 

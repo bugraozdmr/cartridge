@@ -28,12 +28,9 @@ export default async function PrintersPage({
           <p className="mt-1.5 text-sm text-muted-foreground">Bütün yazıcıları yönet ve bağlı kartuşları görüntüle.</p>
         </div>
         
-        <div className="flex flex-col gap-4 sm:flex-row sm:items-center sm:justify-between">
-          <SearchForm placeholder="Yazıcı adına göre ara..." />
-          <div className="flex items-center gap-4">
-            <div className="text-sm text-muted-foreground whitespace-nowrap">
-              Toplam: <span className="font-semibold text-foreground">{metadata.total}</span>
-            </div>
+        <div className="flex flex-col gap-3">
+          <div className="flex items-center justify-between gap-3">
+            <SearchForm placeholder="Yazıcı adına göre ara..." />
             <AddEntityDialog 
               title="Yeni Yazıcı Ekle"
               description="Sisteme yeni bir yazıcı modeli ekleyin."
@@ -45,6 +42,9 @@ export default async function PrintersPage({
               ]}
             />
           </div>
+          <p className="text-xs text-muted-foreground">
+            Toplam: <span className="font-semibold text-foreground">{metadata.total}</span> yazıcı
+          </p>
         </div>
       </div>
 

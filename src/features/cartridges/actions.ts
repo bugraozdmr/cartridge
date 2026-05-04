@@ -16,7 +16,7 @@ export async function addCartridge(formData: FormData) {
     const image = formData.get('image') as File | null
     if (image && image.size > 0) {
       console.log(`Uploading image for cartridge: ${name}, size: ${image.size} bytes`)
-      imageUrl = await uploadImage(image, 'cartridges')
+      imageUrl = (await uploadImage(image, 'cartridges')) ?? undefined
     }
 
     await repo.create({ name, currentPrice: currentPrice || undefined, stock, imageUrl })

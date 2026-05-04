@@ -22,8 +22,9 @@ export default function CartridgeList({ items }: CartridgeListProps) {
   }
 
   return (
-    <div className="space-y-3">
-      <div className="grid gap-3">
+    <div className="overflow-x-auto -mx-4 px-4 sm:mx-0 sm:px-0">
+      <div className="min-w-[520px] space-y-3">
+        <div className="grid gap-3">
         {items.map((cartridge) => (
           <div key={cartridge.id} className="group relative rounded-lg border border-border bg-card/60 hover:bg-card/80 transition-colors p-4">
             <div className="flex items-start gap-4">
@@ -89,6 +90,7 @@ export default function CartridgeList({ items }: CartridgeListProps) {
             </div>
           </div>
         ))}
+        </div>
       </div>
     </div>
   )

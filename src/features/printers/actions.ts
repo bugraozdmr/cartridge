@@ -14,7 +14,7 @@ export async function addPrinter(formData: FormData) {
     const image = formData.get('image') as File | null
     if (image && image.size > 0) {
       console.log(`Uploading image for printer: ${name}, size: ${image.size} bytes`)
-      imageUrl = await uploadImage(image, 'printers')
+      imageUrl = (await uploadImage(image, 'printers')) ?? undefined
     }
 
     await repo.create({ name, imageUrl })
