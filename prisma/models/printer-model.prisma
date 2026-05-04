@@ -1,0 +1,8 @@
+model PrinterModel {
+  id         String      @id @default(cuid())
+  name       String      @unique
+  imageUrl   String?
+  cartridges Cartridge[]
+  createdAt  DateTime    @default(now())
+  updatedAt  DateTime    @updatedAt
+}

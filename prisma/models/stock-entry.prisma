@@ -1,0 +1,8 @@
+model StockEntry {
+  id          String    @id @default(cuid())
+  quantity    Int
+  unitPrice   Decimal   @db.Decimal(10, 2)
+  cartridgeId String
+  cartridge   Cartridge @relation(fields: [cartridgeId], references: [id], onDelete: Cascade)
+  entryDate   DateTime  @default(now())
+}
