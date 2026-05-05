@@ -22,7 +22,7 @@ export async function getAll() {
 export async function getPage({ query, page = 1, pageSize = 20 }: { query?: string; page?: number; pageSize?: number }) {
   const skip = (page - 1) * pageSize
 
-  const where = query ? { name: { contains: query, mode: 'insensitive' as const } } : {}
+  const where = query ? { name: { contains: query } } : {}
 
   const [items, total] = await Promise.all([
     prisma.cartridge.findMany({

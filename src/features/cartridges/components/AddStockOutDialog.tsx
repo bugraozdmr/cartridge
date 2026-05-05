@@ -5,6 +5,7 @@ import { ArrowUpRightIcon, Loader2Icon, CalendarIcon, BuildingIcon, UserIcon, Fi
 import { toast } from 'react-hot-toast'
 import { Dialog, DialogContent, DialogHeader, DialogTitle, DialogTrigger, DialogDescription } from '@/components/ui/dialog'
 import { DatePicker } from '@/components/ui/date-picker'
+import { SelectCustom } from '@/components/ui/select-custom'
 import { addStockOut } from '../stock-actions'
 
 interface Department { id: string; name: string }
@@ -18,6 +19,7 @@ interface AddStockOutDialogProps {
 export function AddStockOutDialog({ cartridgeId, currentStock, departments }: AddStockOutDialogProps) {
   const [open, setOpen] = useState(false)
   const [isPending, startTransition] = useTransition()
+  const [selectedDeptId, setSelectedDeptId] = useState<string>('')
   const formRef = useRef<HTMLFormElement>(null)
   const today = new Date().toISOString().split('T')[0]
 
@@ -85,17 +87,14 @@ export function AddStockOutDialog({ cartridgeId, currentStock, departments }: Ad
                 Departman
               </span>
               {departments.length > 0 ? (
-                <select
+                <SelectCustom
                   name="departmentId"
+                  options={departments.map(d => ({ value: d.id, label: d.name }))}
+                  value={selectedDeptId}
+                  onChange={setSelectedDeptId}
+                  placeholder="Departman seçin..."
                   required
-                  defaultValue=""
-                  className="h-11 w-full rounded-xl border border-border bg-muted/40 px-4 text-sm text-foreground outline-none focus:border-primary/60 focus:ring-2 focus:ring-primary/20"
-                >
-                  <option value="" disabled>Departman seçin...</option>
-                  {departments.map(d => (
-                    <option key={d.id} value={d.id}>{d.name}</option>
-                  ))}
-                </select>
+                />
               ) : (
                 <p className="rounded-xl border border-dashed border-border p-3 text-sm text-muted-foreground">
                   Henüz departman tanımlanmamış.{' '}
