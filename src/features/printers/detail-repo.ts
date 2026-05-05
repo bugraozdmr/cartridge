@@ -28,7 +28,7 @@ export async function getById(id: string) {
 export async function searchCartridges(query: string, excludeIds: string[] = []) {
   const items = await prisma.cartridge.findMany({
     where: {
-      name: { contains: query, mode: 'insensitive' },
+      name: { contains: query },
       id: excludeIds.length > 0 ? { notIn: excludeIds } : undefined,
     },
     select: { id: true, name: true, imageUrl: true },

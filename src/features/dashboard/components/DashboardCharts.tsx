@@ -12,7 +12,6 @@ import {
   Cell
 } from 'recharts'
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@/components/ui/card'
-import { ShoppingBagIcon, TrendingUpIcon } from 'lucide-react'
 import { cn } from '@/lib/utils'
 
 interface ChartData {

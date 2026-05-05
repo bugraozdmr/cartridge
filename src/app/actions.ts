@@ -8,21 +8,21 @@ export async function globalSearch(query: string) {
   const [printers, cartridges, departments] = await Promise.all([
     prisma.printerModel.findMany({
       where: {
-        name: { contains: query, mode: 'insensitive' }
+        name: { contains: query }
       },
       take: 5,
       select: { id: true, name: true }
     }),
     prisma.cartridge.findMany({
       where: {
-        name: { contains: query, mode: 'insensitive' }
+        name: { contains: query }
       },
       take: 5,
       select: { id: true, name: true, stock: true }
     }),
     prisma.department.findMany({
       where: {
-        name: { contains: query, mode: 'insensitive' }
+        name: { contains: query }
       },
       take: 5,
       select: { id: true, name: true }
