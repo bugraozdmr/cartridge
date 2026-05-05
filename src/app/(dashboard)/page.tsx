@@ -1,179 +1,89 @@
 import { Badge } from "@/components/ui/badge";
 import { Button } from "@/components/ui/button";
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card";
-import { ArrowUpRightIcon, CheckIcon, AlertCircleIcon, UsersIcon, PrinterIcon,  TrendingUpIcon, BoxIcon } from "lucide-react";
+import { ArrowUpRightIcon, CheckIcon, AlertCircleIcon, UsersIcon, PrinterIcon, TrendingUpIcon, BoxIcon, CalendarIcon, ActivityIcon, ShoppingBagIcon, AlertTriangleIcon } from "lucide-react";
 import { Separator } from "@/components/ui/separator";
 import Link from 'next/link'
+import Image from 'next/image'
 import { cn } from "@/lib/utils";
+import { getDashboardData } from "@/features/dashboard/repo";
+import { DashboardCharts } from "@/features/dashboard/components/DashboardCharts";
+import { startOfMonth, endOfMonth, subMonths, parseISO } from 'date-fns';
 
-const metrics = [
-    {
-        label: "Aktif yazıcı",
-        value: "48",
-        delta: "+12%",
-        tone: "text-cyan-300",
-        icon: PrinterIcon,
-    },
-    {
-        label: "Kritik kartuş",
-        value: "7",
-        delta: "+2 bugün",
-        tone: "text-amber-300",
-        icon: BoxIcon,
-    },
-    {
-        label: "Açık talep",
-        value: "13",
-        delta: "4 acil",
-        tone: "text-violet-300",
-        icon: TrendingUpIcon,
-    },
-    {
-        label: "Departman",
-        value: "9",
-        delta: "Tam kapsama",
-        tone: "text-emerald-300",
-        icon: UsersIcon,
-    },
-];
+export default async function DashboardPage({
+    searchParams
+}: {
+    searchParams: Promise<{ start?: string; end?: string }>
+}) {
+    const params = await searchParams;
+    const startDate = params.start ? parseISO(params.start) : startOfMonth(subMonths(new Date(), 5));
+    const endDate = params.end ? parseISO(params.end) : endOfMonth(new Date());
 
-const printers = [
-    { name: "HP LaserJet 4200", location: "Mali Hizmetler", status: "Çevrim içi", color: "success", load: "82%" },
-    { name: "Canon iR 2625", location: "Yazı İşleri", status: "Bakım gerekebilir", color: "warning", load: "64%" },
-    { name: "Epson EcoTank L6270", location: "Destek Masası", status: "Beklemede", color: "secondary", load: "38%" },
-    { name: "Xerox VersaLink", location: "Fen İşleri", status: "Çevrim içi", color: "success", load: "91%" },
-];
+    const data = await getDashboardData(startDate, endDate);
 
-const cartridges = [
-    { name: "Cyan XL", remaining: 92, status: "Yeterli" },
-    { name: "Magenta XL", remaining: 56, status: "Orta seviye" },
-    { name: "Yellow XL", remaining: 28, status: "Az kaldı" },
-    { name: "Black XL", remaining: 14, status: "Kritik" },
-];
+    const metrics = [
+        {
+            label: "Aktif Yazıcı",
+            value: data.metrics.printerCount.toString(),
+            delta: "Sistemde kayıtlı",
+            tone: "text-cyan-400",
+            icon: PrinterIcon,
+        },
+        {
+            label: "Toplam Kartuş",
+            value: data.metrics.totalCartridges.toString(),
+            delta: "Farklı model sayısı",
+            tone: "text-violet-400",
+            icon: BoxIcon,
+        },
+        {
+            label: "Kritik Stok",
+            value: data.metrics.criticalCount.toString(),
+            delta: "Acil dolum gerek",
+            tone: data.metrics.criticalCount > 0 ? "text-rose-400" : "text-emerald-400",
+            icon: AlertTriangleIcon,
+        },
+        {
+            label: "Departman",
+            value: data.metrics.departmentCount.toString(),
+            delta: "Aktif birimler",
+            tone: "text-emerald-400",
+            icon: UsersIcon,
+        },
+    ];
 
-const requests = [
-    {
-        title: "Kartuş talebi onaylandı",
-        meta: "Satın alma • 12 dk önce",
-        tone: "success",
-    },
-    {
-        title: "Fen İşleri yazıcı hattı kontrol edildi",
-        meta: "Teknik servis • 34 dk önce",
-        tone: "secondary",
-    },
-    {
-        title: "Kritik toner için uyarı üretildi",
-        meta: "Sistem • 1 saat önce",
-        tone: "warning",
-    },
-];
-
-export default function DashboardPage() {
     return (
-        <div className="space-y-6 lg:space-y-8">
-            <section id="ozet" className="relative overflow-hidden rounded-[2rem] border border-border bg-card/80 p-6 shadow-[0_30px_100px_rgba(0,0,0,0.10)] backdrop-blur-xl">
-                <div className="absolute inset-0 bg-[radial-gradient(circle_at_top_right,hsla(var(--primary),0.18),transparent_28%),radial-gradient(circle_at_bottom_left,hsla(var(--secondary),0.16),transparent_30%)]" />
-                <div className="relative grid gap-6 xl:grid-cols-[1.3fr_0.9fr]">
-                    <div>
-                        <Badge variant="soft" className="mb-4">Canlı kontrol merkezi</Badge>
-                        <h1 className="max-w-2xl text-3xl font-semibold tracking-tight text-foreground sm:text-4xl lg:text-5xl">
-                            Yazıcılar ve kartuşlar için tek ekrandan, temiz ve hızlı yönetim.
-                        </h1>
-                        <p className="mt-4 max-w-2xl text-sm leading-6 text-muted-foreground sm:text-base">
-                            Departman bazlı kullanım, stok takibi ve bakım durumlarını sade bir panelde topla. Dark mode odaklı bu arayüz, yoğun kullanımda da okunaklı kalacak şekilde hazırlandı.
-                        </p>
-
-                        <div className="mt-6 flex flex-wrap gap-3">
-                            <Button className="bg-primary text-primary-foreground hover:bg-primary/90">
-                                Yeni yazıcı ekle
-                                <ArrowUpRightIcon className="h-4 w-4" />
-                            </Button>
-                            <Button variant="outline" className="border-border bg-muted/40 text-foreground hover:bg-muted/70">
-                                Kartuş stoklarını aç
-                            </Button>
-                        </div>
-
-                        <div className="mt-8 grid gap-4 sm:grid-cols-3">
-                            <div className="rounded-[1.4rem] border border-border bg-muted/40 p-4">
-                                <p className="text-xs uppercase tracking-[0.25em] text-muted-foreground">Aylık baskı</p>
-                                <p className="mt-3 text-2xl font-semibold text-foreground">18.240</p>
-                                <p className="mt-2 text-sm text-emerald-500">+8.4% artış</p>
-                            </div>
-                            <div className="rounded-[1.4rem] border border-border bg-muted/40 p-4">
-                                <p className="text-xs uppercase tracking-[0.25em] text-muted-foreground">Bakım gecikmesi</p>
-                                <p className="mt-3 text-2xl font-semibold text-foreground">2 cihaz</p>
-                                <p className="mt-2 text-sm text-amber-500">Bugün müdahale gerekli</p>
-                            </div>
-                            <div className="rounded-[1.4rem] border border-border bg-muted/40 p-4">
-                                <p className="text-xs uppercase tracking-[0.25em] text-muted-foreground">Stok güveni</p>
-                                <p className="mt-3 text-2xl font-semibold text-foreground">%86</p>
-                                <p className="mt-2 text-sm text-cyan-500">Hafta sonuna hazır</p>
-                            </div>
-                        </div>
-                    </div>
-
-                    <Card className="border-border bg-card/95">
-                        <CardHeader>
-                            <CardTitle className="text-foreground">Bugünkü durum</CardTitle>
-                            <CardDescription className="text-muted-foreground">Panel özet sinyalleri ve hızlı aksiyonlar.</CardDescription>
-                        </CardHeader>
-                        <CardContent className="space-y-4">
-                            <div>
-                                <div className="mb-2 flex items-center justify-between text-sm">
-                                    <span className="text-muted-foreground">Çevrim içi yazıcılar</span>
-                                    <span className="text-foreground">42 / 48</span>
-                                </div>
-                                <div className="h-3 rounded-full bg-muted">
-                                    <div className="h-3 w-[87%] rounded-full bg-gradient-to-r from-cyan-500 via-teal-500 to-emerald-500" />
-                                </div>
-                            </div>
-                            <div>
-                                <div className="mb-2 flex items-center justify-between text-sm">
-                                    <span className="text-muted-foreground">Kartuş doluluk ortalaması</span>
-                                    <span className="text-foreground">%47</span>
-                                </div>
-                                <div className="h-3 rounded-full bg-muted">
-                                    <div className="h-3 w-[47%] rounded-full bg-gradient-to-r from-violet-500 via-fuchsia-500 to-rose-500" />
-                                </div>
-                            </div>
-                            <Separator className="bg-border" />
-                            <div className="grid gap-3 sm:grid-cols-2">
-                                <div className="rounded-[1.2rem] border border-border bg-muted/40 p-4">
-                                    <p className="text-xs uppercase tracking-[0.2em] text-muted-foreground">Sistem durumu</p>
-                                    <div className="mt-3 flex items-center gap-2 text-sm text-emerald-500">
-                                        <CheckIcon className="h-4 w-4" />
-                                        Sorunsuz çalışıyor
-                                    </div>
-                                </div>
-                                <div className="rounded-[1.2rem] border border-border bg-muted/40 p-4">
-                                    <p className="text-xs uppercase tracking-[0.2em] text-muted-foreground">Uyarı</p>
-                                    <div className="mt-3 flex items-center gap-2 text-sm text-amber-500">
-                                        <AlertCircleIcon className="h-4 w-4" />
-                                        3 stok kalemi kritik seviyede
-                                    </div>
-                                </div>
-                            </div>
-                        </CardContent>
-                    </Card>
+        <div className="space-y-6 lg:space-y-8 pb-10">
+            {/* ── Filters & Stats ────────────────────────────────── */}
+            <div className="flex flex-col sm:flex-row items-start sm:items-center justify-between gap-4">
+                <div>
+                    <h1 className="text-4xl font-black tracking-tight bg-gradient-to-br from-foreground to-foreground/50 bg-clip-text text-transparent">Genel Görünüm</h1>
+                    <p className="text-sm text-muted-foreground font-medium italic">Envanter ve stok hareketlerini izleyin.</p>
                 </div>
-            </section>
+                <div className="flex items-center gap-2 rounded-2xl border border-border bg-card p-1.5 shadow-sm">
+                    <Link href="/?start=&end=" className={cn("px-4 py-1.5 text-xs font-medium rounded-xl transition-all", !params.start ? "bg-primary text-primary-foreground shadow-lg shadow-primary/20" : "text-muted-foreground hover:bg-muted")}>
+                        Son 6 Ay
+                    </Link>
+                    <Link href={`/?start=${startOfMonth(new Date()).toISOString()}&end=${endOfMonth(new Date()).toISOString()}`} className={cn("px-4 py-1.5 text-xs font-medium rounded-xl transition-all", params.start?.startsWith(new Date().getFullYear().toString()) ? "bg-primary text-primary-foreground shadow-lg shadow-primary/20" : "text-muted-foreground hover:bg-muted")}>
+                        Bu Ay
+                    </Link>
+                </div>
+            </div>
 
-            <section className="grid gap-4 md:grid-cols-2 xl:grid-cols-4">
+            <section className="grid gap-4 sm:grid-cols-2 lg:grid-cols-4">
                 {metrics.map((metric) => {
                     const Icon = metric.icon;
-
                     return (
-                        <Card key={metric.label} className="group border-border bg-card/80 transition-transform duration-200 hover:-translate-y-1">
-                            <CardContent className="p-5">
-                                <div className="flex items-start justify-between gap-4">
-                                    <div>
-                                        <p className="text-sm text-muted-foreground">{metric.label}</p>
-                                        <p className="mt-3 text-3xl font-semibold text-foreground">{metric.value}</p>
-                                        <p className={cn("mt-2 text-sm", metric.tone)}>{metric.delta}</p>
+                        <Card key={metric.label} className="group border-border bg-card transition-all hover:bg-card hover:-translate-y-1 hover:shadow-2xl hover:shadow-primary/5 rounded-[1.5rem]">
+                            <CardContent className="p-6">
+                                <div className="flex items-start justify-between">
+                                    <div className="space-y-1">
+                                        <p className="text-xs font-medium text-muted-foreground uppercase tracking-widest">{metric.label}</p>
+                                        <p className="text-4xl font-bold text-foreground">{metric.value}</p>
+                                        <p className={cn("text-xs font-medium", metric.tone)}>{metric.delta}</p>
                                     </div>
-                                    <div className="flex h-12 w-12 items-center justify-center rounded-2xl bg-muted text-foreground ring-1 ring-inset ring-border transition group-hover:scale-105">
-                                        <Icon className="h-5 w-5" />
+                                    <div className="flex h-12 w-12 items-center justify-center rounded-2xl bg-muted text-foreground ring-1 ring-inset ring-border transition-transform group-hover:scale-110 group-hover:rotate-6">
+                                        <Icon className="h-6 w-6" />
                                     </div>
                                 </div>
                             </CardContent>
@@ -182,146 +92,121 @@ export default function DashboardPage() {
                 })}
             </section>
 
-            <section id="yazicilar" className="grid gap-6 xl:grid-cols-[1.4fr_0.9fr]">
-                <Card className="border-border bg-card/80">
-                    <CardHeader>
-                        <div className="flex items-center justify-between gap-4">
-                            <div>
-                                <CardTitle className="text-foreground">Yazıcılar</CardTitle>
-                                <CardDescription className="text-muted-foreground">Birim bazlı durum ve doluluk takibi.</CardDescription>
+            {/* ── Main Charts & Critical Items ─────────── */}
+            <div className="grid gap-6 lg:grid-cols-3">
+                {/* Recharts Bar Plots */}
+                <DashboardCharts
+                    stockInData={data.monthlyStockIn}
+                    stockOutData={data.monthlyStockOut}
+                />
+
+                {/* Low Stock Cartridges (Critical) */}
+                <Card className="border-border bg-card/60 rounded-[2rem] border-rose-500/20">
+                    <CardHeader className="flex flex-row items-center justify-between">
+                        <div>
+                            <div className="flex items-center gap-2">
+                                <CardTitle>Stok Uyarıları</CardTitle>
+                                {data.metrics.criticalCount > 0 && (
+                                    <Badge variant="danger" className="animate-pulse">Acil</Badge>
+                                )}
                             </div>
-                            <Badge variant="outline">48 cihaz</Badge>
+                            <CardDescription>Kritik seviyedeki kartuşlar.</CardDescription>
                         </div>
+                        <AlertTriangleIcon className="h-5 w-5 text-rose-500" />
                     </CardHeader>
-                    <CardContent className="space-y-4">
-                        <div className="flex items-center justify-between">
-                            <p className="text-sm text-muted-foreground">Yazıcı listesini ayrı sayfada detaylı yönet.</p>
-                            <Link href="/printers" className="rounded-md bg-primary px-3 py-2 text-primary-foreground">Yazıcılar</Link>
-                        </div>
-                        <p className="text-xs text-muted-foreground">Burada sadece kısa özet gösterilir; tam yönetim için sayfaya git.</p>
-                    </CardContent>
-                </Card>
-
-                <div className="space-y-6">
-                    <Card className="border-border bg-card/80">
-                        <CardHeader>
-                            <CardTitle className="text-foreground">Kartuş stoğu</CardTitle>
-                            <CardDescription className="text-muted-foreground">Renk bazlı tüketim ve kritik eşikler.</CardDescription>
-                        </CardHeader>
-                        <CardContent className="space-y-4">
-                        <div className="flex items-center justify-between">
-                            <p className="text-sm text-muted-foreground">Kartuş stoklarını ayrı sayfada detaylı görüntüle ve yönet.</p>
-                            <Link href="/cartridges" className="rounded-md bg-primary px-3 py-2 text-primary-foreground">Kartuşlar</Link>
-                        </div>
-                        <p className="text-xs text-muted-foreground">Stok, fiyat ve geçmiş hareketler bu sayfada gösterilir.</p>
-                    </CardContent>
-                    </Card>
-
-                    <Card className="border-border bg-card/80">
-                        <CardHeader>
-                            <CardTitle id="talepler" className="text-foreground">Son işlemler</CardTitle>
-                            <CardDescription className="text-muted-foreground">Kısa faaliyet akışı ve uyarılar.</CardDescription>
-                        </CardHeader>
-                        <CardContent className="space-y-3">
-                            {requests.map((request) => (
-                                <div key={request.title} className="flex items-start gap-3 rounded-[1.2rem] border border-border bg-muted/40 p-4">
-                                    <Badge variant={request.tone as "success" | "warning" | "secondary"} className="mt-0.5">
-                                        {request.tone === "success" ? "Tamam" : request.tone === "warning" ? "Uyarı" : "Bilgi"}
-                                    </Badge>
-                                    <div className="min-w-0 flex-1">
-                                        <p className="font-medium text-foreground">{request.title}</p>
-                                        <p className="mt-1 text-sm text-muted-foreground">{request.meta}</p>
+                    <CardContent className="space-y-4 max-h-[350px] overflow-y-auto pr-2 scrollbar-thin scrollbar-thumb-border">
+                        {data.lowStockCartridges.length > 0 ? data.lowStockCartridges.map((cart, i) => (
+                            <div key={cart.id} className="flex items-center justify-between gap-4 p-3 rounded-2xl bg-rose-500/5 border border-rose-500/10 hover:bg-rose-500/10 transition-colors">
+                                <div className="flex items-center gap-3 min-w-0">
+                                    <div className="relative h-10 w-10 shrink-0 overflow-hidden rounded-xl border border-border bg-background">
+                                        {cart.imageUrl ? (
+                                            <Image src={cart.imageUrl} alt={cart.name} fill className="object-cover" />
+                                        ) : (
+                                            <div className="flex h-full w-full items-center justify-center bg-muted">
+                                                <BoxIcon className="h-4 w-4 text-muted-foreground" />
+                                            </div>
+                                        )}
+                                    </div>
+                                    <div className="truncate">
+                                        <p className="text-sm font-semibold text-foreground truncate">{cart.name}</p>
+                                        <p className="text-xs text-rose-500 font-medium">Stok: {cart.stock}</p>
                                     </div>
                                 </div>
-                            ))}
-                        </CardContent>
-                    </Card>
-                </div>
-            </section>
-
-            <section id="kartuslar" className="grid gap-6 lg:grid-cols-[0.9fr_1.1fr]">
-                <Card className="border-border bg-card/80">
-                    <CardHeader>
-                        <Badge variant="soft" className="w-fit">Öncelikli stok</Badge>
-                        <CardTitle className="text-foreground">Kartuşlar</CardTitle>
-                        <CardDescription className="text-muted-foreground">Azalan stoklar için otomatik uyarı akışı.</CardDescription>
-                    </CardHeader>
-                    <CardContent className="space-y-4">
-                        <div className="rounded-[1.2rem] border border-border bg-muted/40 p-4">
-                            <p className="text-xs uppercase tracking-[0.22em] text-muted-foreground">Bugün tüketim</p>
-                            <p className="mt-2 text-3xl font-semibold text-foreground">32 adet</p>
-                        </div>
-                        <div className="rounded-[1.2rem] border border-border bg-muted/40 p-4">
-                            <p className="text-xs uppercase tracking-[0.22em] text-muted-foreground">Yenileme planı</p>
-                            <p className="mt-2 text-sm leading-6 text-muted-foreground">Black ve Yellow kartuşları için yeni sipariş planı bugün kapanmadan hazırlanmalı.</p>
-                        </div>
-                        <Button className="w-full bg-primary text-primary-foreground hover:bg-primary/90">Stok planını oluştur</Button>
+                                <Link href={`/cartridges/${cart.id}`}>
+                                    <Button size="sm" variant="ghost" className="h-8 w-8 p-0 rounded-full text-rose-500 hover:bg-rose-500 hover:text-white">
+                                        <ArrowUpRightIcon className="h-4 w-4" />
+                                    </Button>
+                                </Link>
+                            </div>
+                        )) : (
+                            <div className="h-full flex flex-col items-center justify-center text-muted-foreground text-sm border border-dashed border-border rounded-2xl py-10">
+                                <CheckIcon className="h-8 w-8 text-emerald-500 mb-2" />
+                                <span>Tüm stoklar güvenli seviyede.</span>
+                            </div>
+                        )}
                     </CardContent>
                 </Card>
+            </div>
 
-                <Card className="border-border bg-card/80">
-                    <CardHeader>
-                        <div className="flex items-center justify-between gap-4">
-                            <div>
-                                <CardTitle className="text-foreground">Departman dağılımı</CardTitle>
-                                <CardDescription className="text-muted-foreground">Hangi birim ne kadar baskı üretiyor.</CardDescription>
-                            </div>
-                            <Badge variant="outline">Haftalık</Badge>
+            {/* ── Recent Activities & Distribution ─────────── */}
+            <div className="grid gap-6 lg:grid-cols-3">
+                {/* Recent Activities */}
+                <Card className="lg:col-span-2 border-border bg-card rounded-[2rem]">
+                    <CardHeader className="flex flex-col gap-3 sm:flex-row sm:items-center sm:justify-between">
+                        <div className="min-w-0">
+                            <CardTitle>Son Hareketler</CardTitle>
+                            <CardDescription>Sistemdeki en güncel 7 stok çıkış işlemi.</CardDescription>
                         </div>
+                        <ActivityIcon className="hidden h-5 w-5 shrink-0 self-start text-muted-foreground sm:block sm:self-auto" />
                     </CardHeader>
-                    <CardContent className="grid gap-4 md:grid-cols-2">
-                        {[
-                            ["Mali Hizmetler", "24%", "bg-cyan-500"],
-                            ["Yazı İşleri", "18%", "bg-violet-500"],
-                            ["Fen İşleri", "31%", "bg-emerald-500"],
-                            ["Destek Masası", "27%", "bg-amber-500"],
-                        ].map(([name, percent, tone]) => (
-                            <div key={name} className="rounded-[1.3rem] border border-border bg-muted/40 p-4">
-                                <div className="flex items-center justify-between gap-3">
-                                    <p className="text-sm font-medium text-foreground">{name}</p>
-                                    <p className="text-sm text-muted-foreground">{percent}</p>
+                    <CardContent className="max-h-[300px] overflow-y-auto pr-2 sm:max-h-none sm:pr-6">
+                        <div className="space-y-1">
+                            {data.recentActivities.length > 0 ? data.recentActivities.map((act, i) => (
+                                <div key={i} className="group relative flex items-center gap-3 rounded-2xl p-2.5 sm:gap-4 sm:p-3 hover:bg-muted/40 transition-colors">
+                                    <div className="flex h-9 w-9 shrink-0 items-center justify-center rounded-xl bg-muted border border-border group-hover:border-primary/30 transition-colors sm:h-10 sm:w-10">
+                                        <TrendingUpIcon className="h-3.5 w-3.5 text-primary sm:h-4 sm:w-4" />
+                                    </div>
+                                    <div className="min-w-0 flex-1">
+                                        <p className="text-[13px] font-semibold text-foreground truncate sm:text-sm">{act.title}</p>
+                                        <p className="text-[11px] text-muted-foreground sm:text-xs">{act.meta}</p>
+                                    </div>
                                 </div>
-                                <div className="mt-3 h-2 rounded-full bg-muted">
-                                    <div className={cn("h-2 rounded-full", tone)} style={{ width: percent }} />
+                            )) : (
+                                <div className="py-10 text-center text-sm text-muted-foreground">İşlem kaydı bulunmuyor.</div>
+                            )}
+                        </div>
+                    </CardContent>
+                </Card>
+
+                {/* Distribution (Summary) */}
+                <Card className="border-border bg-card rounded-[2rem]">
+                    <CardHeader>
+                        <CardTitle>Departman Tüketimi</CardTitle>
+                        <CardDescription>Seçili aralıktaki kullanım miktarı.</CardDescription>
+                    </CardHeader>
+                    <CardContent className="space-y-5">
+                        {data.distribution.length > 0 ? data.distribution.map((dept, i) => (
+                            <div key={i} className="space-y-2">
+                                <div className="flex items-center justify-between text-xs font-medium">
+                                    <span className="text-muted-foreground truncate">{dept.name}</span>
+                                    <span className="text-foreground">{dept.total} Adet</span>
+                                </div>
+                                <div className="h-1.5 rounded-full bg-muted/40">
+                                    <div
+                                        className={cn("h-full rounded-full transition-all duration-1000",
+                                            i === 0 ? "bg-primary shadow-[0_0_8px_rgba(var(--primary),0.4)]" :
+                                                i === 1 ? "bg-violet-500" : "bg-emerald-500"
+                                        )}
+                                        style={{ width: `${dept.percent}%` }}
+                                    />
                                 </div>
                             </div>
-                        ))}
+                        )) : (
+                            <div className="py-10 text-center text-xs text-muted-foreground">Veri bulunamadı.</div>
+                        )}
                     </CardContent>
                 </Card>
-            </section>
-
-            <section id="ayarlar" className="grid gap-6 lg:grid-cols-[1fr_0.9fr]">
-                <Card className="border-border bg-card/80">
-                    <CardHeader>
-                        <CardTitle className="text-foreground">Bakım notu</CardTitle>
-                        <CardDescription className="text-muted-foreground">Paneli sade tut, kritik uyarıları üstte göster.</CardDescription>
-                    </CardHeader>
-                    <CardContent className="space-y-3 text-sm leading-6 text-muted-foreground">
-                        <p>• Son bakım tarihi 12 gün önce geçtiyse kartı sarı renge geçir.</p>
-                        <p>• Kartuş eşikleri %25 altına indiğinde otomatik uyarı üret.</p>
-                        <p>• Yoğun kullanımda üst header sabit kalsın, içerik alanı kendi içinde akmaya devam etsin.</p>
-                    </CardContent>
-                </Card>
-
-                <Card className="border-border bg-card/80">
-                    <CardHeader>
-                        <CardTitle className="text-foreground">Hızlı özet</CardTitle>
-                        <CardDescription className="text-muted-foreground">Tek bakışta durum tablosu.</CardDescription>
-                    </CardHeader>
-                    <CardContent className="space-y-3">
-                        {[
-                            ["Servis planı", "3 cihaz sırada"],
-                            ["Stok emniyeti", "%86"],
-                            ["Haftalık hedef", "48/50 tamamlandı"],
-                        ].map(([label, value]) => (
-                            <div key={label} className="flex items-center justify-between rounded-[1.2rem] border border-border bg-muted/40 px-4 py-3">
-                                <span className="text-sm text-muted-foreground">{label}</span>
-                                <span className="text-sm font-medium text-foreground">{value}</span>
-                            </div>
-                        ))}
-                    </CardContent>
-                </Card>
-            </section>
+            </div>
         </div>
     );
 }

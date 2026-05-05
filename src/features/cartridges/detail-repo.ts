@@ -9,7 +9,12 @@ export async function getById(id: string) {
       },
       stockEntries: {
         orderBy: { entryDate: 'desc' },
-        take: 10,
+      },
+      stockOuts: {
+        orderBy: { issueDate: 'desc' },
+        include: {
+          department: { select: { id: true, name: true } }
+        }
       }
     }
   })
@@ -28,6 +33,21 @@ export async function getById(id: string) {
       quantity: e.quantity,
       unitPrice: e.unitPrice ? e.unitPrice.toString() : null,
       entryDate: e.entryDate,
-    }))
+    })),
+    stockOuts: item.stockOuts.map(o => ({
+      id: o.id,
+      quantity: o.quantity,
+      issueDate: o.issueDate,
+      department: o.department,
+      receiverName: o.receiverName,
+      notes: o.notes,
+    })),
   }
+}
+
+export async function getAllDepartments() {
+  return prisma.department.findMany({
+    orderBy: { name: 'asc' },
+    select: { id: true, name: true }
+  })
 }

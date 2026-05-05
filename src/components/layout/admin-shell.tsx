@@ -6,7 +6,9 @@ import Link from "next/link";
 import { useTheme } from "next-themes";
 
 import {
+  BarChart3Icon,
   BoxIcon,
+  BuildingIcon,
   ChevronLeftIcon,
   ChevronRightIcon,
   MenuIcon,
@@ -15,19 +17,18 @@ import {
   PanelTopIcon,
   PrinterIcon,
   SearchIcon,
-  SettingsIcon,
   SunIcon,
-  TrendingUpIcon,
 } from "lucide-react";
 
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { cn } from "@/lib/utils";
+import { GlobalSearch } from "./GlobalSearch";
 
 type NavigationItem = {
   label: string;
   href: string;
-  icon: typeof PanelTopIcon;
+  icon: any;
   accent?: string;
 };
 
@@ -35,8 +36,8 @@ const navigation: NavigationItem[] = [
   { label: "Genel Bakış", href: "/", icon: PanelTopIcon, accent: "from-cyan-400/40 to-sky-400/20" },
   { label: "Yazıcılar", href: "/printers", icon: PrinterIcon, accent: "from-violet-400/40 to-fuchsia-400/20" },
   { label: "Kartuşlar", href: "/cartridges", icon: BoxIcon, accent: "from-emerald-400/40 to-teal-400/20" },
-  { label: "Talepler", href: "/requests", icon: TrendingUpIcon, accent: "from-amber-400/40 to-orange-400/20" },
-  { label: "Ayarlar", href: "/settings", icon: SettingsIcon, accent: "from-slate-400/40 to-slate-500/20" },
+  { label: "Departmanlar", href: "/departments", icon: BuildingIcon, accent: "from-sky-400/40 to-blue-400/20" },
+  { label: "Raporlar", href: "/reports", icon: BarChart3Icon, accent: "from-rose-400/40 to-pink-400/20" },
 ];
 
 export function AdminShell({ children }: { children: ReactNode }) {
@@ -181,13 +182,7 @@ export function AdminShell({ children }: { children: ReactNode }) {
 
             {/* Search bar */}
             <div className="hidden min-w-0 flex-1 md:block">
-              <label className="flex max-w-md items-center gap-2.5 rounded-xl border border-border bg-muted/60 px-3.5 py-2 text-sm cursor-text">
-                <SearchIcon className="h-4 w-4 text-muted-foreground shrink-0" />
-                <Input
-                  className="h-auto border-0 bg-transparent p-0 text-sm text-foreground placeholder:text-muted-foreground focus-visible:ring-0 focus-visible:ring-offset-0 shadow-none"
-                  placeholder="Yazıcı, kartuş veya talep ara"
-                />
-              </label>
+              <GlobalSearch />
             </div>
 
             {/* Theme toggle */}

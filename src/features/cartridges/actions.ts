@@ -35,6 +35,7 @@ export async function deleteCartridge(formData: FormData) {
 
   await repo.remove(id)
   revalidatePath('/')
+  revalidatePath('/cartridges')
 }
 
 export async function updateCartridge(formData: FormData) {
@@ -61,11 +62,25 @@ export async function updateCartridge(formData: FormData) {
 
     await repo.update(id, { name, currentPrice, stock, imageUrl })
     revalidatePath('/')
+    revalidatePath('/cartridges')
+    revalidatePath(`/cartridges/${id}`)
   } catch (error: any) {
     console.error('Cartridge action error:', error)
     if (error.code === 'P2002') {
       throw new Error('Bu isimde bir kartuş zaten mevcut.')
     }
     throw new Error(error.message || 'Bir hata oluştu.')
+  }
+}
+
+export async function bulkAddStockAction(entries: { cartridgeId: string; quantity: number; unitPrice: string }[]) {
+  try {
+    await repo.bulkAddStock(entries)
+    revalidatePath('/')
+    revalidatePath('/cartridges')
+    revalidatePath('/reports')
+  } catch (error: any) {
+    console.error('Bulk add stock action error:', error)
+    throw new Error(error.message || 'Toplu stok girişi sırasında bir hata oluştu.')
   }
 }

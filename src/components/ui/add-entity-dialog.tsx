@@ -11,7 +11,7 @@ import Image from 'next/image'
 type AddEntityDialogProps = {
   title: string
   description: string
-  triggerLabel?: string
+  triggerLabel?: React.ReactNode
   triggerIcon?: React.ReactNode
   triggerClassName?: string
   triggerVariant?: "default" | "destructive" | "outline" | "secondary" | "ghost"

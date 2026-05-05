@@ -81,3 +81,36 @@ export async function update(id: string, data: { name?: string; currentPrice?: s
 
   return prisma.cartridge.update({ where: { id }, data: payload })
 }
+
+export async function getAllCompact() {
+  return prisma.cartridge.findMany({
+    select: { id: true, name: true, stock: true, currentPrice: true },
+    orderBy: { name: 'asc' }
+  })
+}
+
+export async function bulkAddStock(entries: { cartridgeId: string; quantity: number; unitPrice: string }[]) {
+  return prisma.$transaction(async (tx) => {
+    for (const entry of entries) {
+      if (entry.quantity <= 0) continue
+
+      // Create stock entry
+      await tx.stockEntry.create({
+        data: {
+          cartridgeId: entry.cartridgeId,
+          quantity: entry.quantity,
+          unitPrice: entry.unitPrice,
+        }
+      })
+
+      // Update cartridge stock and currentPrice
+      await tx.cartridge.update({
+        where: { id: entry.cartridgeId },
+        data: {
+          stock: { increment: entry.quantity },
+          currentPrice: entry.unitPrice
+        }
+      })
+    }
+  })
+}

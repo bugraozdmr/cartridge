@@ -7,14 +7,15 @@ import { ChevronLeftIcon, ChevronRightIcon } from 'lucide-react'
 interface PaginationProps {
   currentPage: number
   totalPages: number
+  paramName?: string
 }
 
-export function Pagination({ currentPage, totalPages }: PaginationProps) {
+export function Pagination({ currentPage, totalPages, paramName = 'page' }: PaginationProps) {
   const searchParams = useSearchParams()
   
   const createPageUrl = (page: number) => {
     const params = new URLSearchParams(searchParams)
-    params.set('page', page.toString())
+    params.set(paramName, page.toString())
     return `?${params.toString()}`
   }
 

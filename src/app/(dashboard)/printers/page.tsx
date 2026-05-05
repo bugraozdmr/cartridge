@@ -8,15 +8,15 @@ import { Pagination } from '@/components/ui/pagination'
 import { AddEntityDialog } from '@/components/ui/add-entity-dialog'
 import { addPrinter } from '@/features/printers/actions'
 
-export default async function PrintersPage({ 
+export default async function PrintersPage({
   searchParams: searchParamsPromise
-}: { 
+}: {
   searchParams: Promise<{ q?: string; page?: string }>
 }) {
   const searchParams = await searchParamsPromise
   const query = typeof searchParams.q === 'string' ? searchParams.q : searchParams.q?.[0] || ''
   const page = Number(typeof searchParams.page === 'string' ? searchParams.page : searchParams.page?.[0] || 1) || 1
-  
+
   // Fetch metadata for header and pagination
   const metadata = await getPage({ query, page, pageSize: 20 })
 
@@ -24,14 +24,14 @@ export default async function PrintersPage({
     <div className="space-y-6">
       <div className="space-y-3">
         <div>
-          <h1 className="text-3xl font-bold tracking-tight text-foreground">Yazıcılar</h1>
-          <p className="mt-1.5 text-sm text-muted-foreground">Bütün yazıcıları yönet ve bağlı kartuşları görüntüle.</p>
+          <h1 className="text-4xl font-black tracking-tight bg-gradient-to-br from-foreground to-foreground/50 bg-clip-text text-transparent">Yazıcılar</h1>
+          <p className="text-sm text-muted-foreground font-medium italic">Bütün yazıcıları yönet ve bağlı kartuşları görüntüle.</p>
         </div>
-        
+
         <div className="flex flex-col gap-3">
           <div className="flex items-center justify-between gap-3">
             <SearchForm placeholder="Yazıcı adına göre ara..." />
-            <AddEntityDialog 
+            <AddEntityDialog
               title="Yeni Yazıcı Ekle"
               description="Sisteme yeni bir yazıcı modeli ekleyin."
               triggerLabel="Yeni Ekle"

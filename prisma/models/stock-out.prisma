@@ -1,0 +1,16 @@
+model StockOut {
+  id           String     @id @default(cuid())
+  quantity     Int
+  
+  cartridgeId  String
+  cartridge    Cartridge  @relation(fields: [cartridgeId], references: [id], onDelete: Cascade)
+  
+  departmentId String
+  department   Department @relation(fields: [departmentId], references: [id], onDelete: Restrict)
+  
+  receiverName String?
+  
+  notes        String?
+  
+  issueDate    DateTime   @default(now())
+}

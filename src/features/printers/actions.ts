@@ -34,6 +34,7 @@ export async function deletePrinter(formData: FormData) {
 
   await repo.remove(id)
   revalidatePath('/')
+  revalidatePath('/printers')
 }
 
 export async function updatePrinter(formData: FormData) {
@@ -58,6 +59,8 @@ export async function updatePrinter(formData: FormData) {
 
     await repo.update(id, { name, imageUrl })
     revalidatePath('/')
+    revalidatePath('/printers')
+    revalidatePath(`/printers/${id}`)
   } catch (error: any) {
     console.error('Printer update error:', error)
     if (error.code === 'P2002') {

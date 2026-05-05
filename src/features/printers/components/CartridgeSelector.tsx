@@ -1,6 +1,6 @@
 'use client'
 
-import { useState, useTransition, useCallback } from 'react'
+import { useState, useTransition, useCallback, useRef, useEffect } from 'react'
 import Image from 'next/image'
 import { SearchIcon, XIcon, PrinterIcon, BoxIcon, CheckIcon, Loader2Icon } from 'lucide-react'
 import { toast } from 'react-hot-toast'
@@ -23,6 +23,17 @@ export function CartridgeSelector({ printerId, initialCartridges }: CartridgeSel
   const [results, setResults] = useState<Cartridge[]>([])
   const [isSearching, setIsSearching] = useState(false)
   const [isSaving, startSave] = useTransition()
+  const containerRef = useRef<HTMLDivElement>(null)
+
+  useEffect(() => {
+    const handleClickOutside = (event: MouseEvent) => {
+      if (containerRef.current && !containerRef.current.contains(event.target as Node)) {
+        setResults([])
+      }
+    }
+    document.addEventListener('mousedown', handleClickOutside)
+    return () => document.removeEventListener('mousedown', handleClickOutside)
+  }, [])
 
   const handleSearch = useCallback(async (value: string) => {
     setQuery(value)
@@ -42,7 +53,7 @@ export function CartridgeSelector({ printerId, initialCartridges }: CartridgeSel
 
   const addCartridge = (cartridge: Cartridge) => {
     setSelected(prev => [...prev, cartridge])
-    setResults(prev => prev.filter(c => c.id !== cartridge.id))
+    setResults([])
     setQuery('')
   }
 
@@ -67,7 +78,7 @@ export function CartridgeSelector({ printerId, initialCartridges }: CartridgeSel
   }
 
   return (
-    <div className="space-y-4">
+    <div className="space-y-4" ref={containerRef}>
       {/* Search input */}
       <div className="relative">
         <SearchIcon className="absolute left-3 top-1/2 -translate-y-1/2 h-4 w-4 text-muted-foreground" />
