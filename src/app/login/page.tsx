@@ -82,7 +82,7 @@ export default function LoginPage() {
         </Card>
 
         <p className="text-center text-xs text-muted-foreground opacity-50">
-          © 2026 Belediye Envanter Yönetim Sistemi
+          © 2026
         </p>
       </div>
     </div>
