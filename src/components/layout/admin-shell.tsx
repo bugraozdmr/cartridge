@@ -3,7 +3,7 @@
 import { useEffect, useMemo, useState, type ReactNode } from "react";
 import { usePathname } from 'next/navigation'
 import Link from "next/link";
-import { useTheme } from "next-themes";
+import { useTheme } from "@/components/providers/theme-provider";
 
 import {
   BarChart3Icon,
@@ -24,6 +24,8 @@ import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { cn } from "@/lib/utils";
 import { GlobalSearch } from "./GlobalSearch";
+import { LogOutIcon } from "lucide-react";
+import { logout } from "@/app/login/actions";
 
 type NavigationItem = {
   label: string;
@@ -144,7 +146,7 @@ export function AdminShell({ children }: { children: ReactNode }) {
         </nav>
 
         {/* Sidebar footer – collapse toggle (desktop only) */}
-        <div className="border-t border-border p-3 hidden md:block">
+        <div className="border-t border-border p-3 hidden md:flex flex-col gap-1">
           <button
             onClick={() => setCollapsed((v) => !v)}
             className={cn(
@@ -161,6 +163,18 @@ export function AdminShell({ children }: { children: ReactNode }) {
                 <span className="flex-1 text-left">Daralt</span>
               </>
             )}
+          </button>
+          
+          <button
+            onClick={() => logout()}
+            className={cn(
+              "flex w-full items-center gap-3 rounded-xl px-2.5 py-2.5 text-sm font-medium text-rose-500 hover:bg-rose-500/10 transition-colors",
+              collapsed && "justify-center",
+            )}
+            title={collapsed ? "Çıkış Yap" : undefined}
+          >
+            <LogOutIcon className="h-4 w-4 shrink-0" />
+            {!collapsed && <span className="flex-1 text-left">Çıkış Yap</span>}
           </button>
         </div>
       </aside>
