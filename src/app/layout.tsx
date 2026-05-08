@@ -5,7 +5,10 @@ import { ClientThemeProvider } from "@/components/providers/theme-provider";
 import ToasterRoot from '@/components/ui/toaster'
 
 export const metadata = {
-  title: "Panel",
+  title: {
+    default: "Bilgi İşlem",
+    template: "%s | Bilgi İşlem",
+  },
   description: "Yazıcı ve kartuş yönetimi için modern admin paneli.",
 };
 

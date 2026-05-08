@@ -13,6 +13,22 @@ export async function getById(id: string) {
           currentPrice: true,
         }
       }
+      ,
+      printers: {
+        select: {
+          id: true,
+          serialNumber: true,
+          inventoryNumber: true,
+          assignedTo: true,
+          ipAddress: true,
+          notes: true,
+            printerModelId: true,
+          departmentId: true,
+          department: { select: { id: true, name: true } },
+          createdAt: true,
+          updatedAt: true,
+        }
+      }
     }
   })
   if (!item) return null
@@ -22,6 +38,20 @@ export async function getById(id: string) {
       ...c,
       currentPrice: c.currentPrice ? c.currentPrice.toString() : null
     }))
+    ,
+    printers: item.printers?.map(p => ({
+      id: p.id,
+      serialNumber: p.serialNumber || null,
+      inventoryNumber: p.inventoryNumber || null,
+      assignedTo: p.assignedTo || null,
+      ipAddress: p.ipAddress || null,
+      notes: p.notes || null,
+      printerModelId: p.printerModelId,
+      departmentId: p.departmentId,
+      departmentName: p.department?.name || null,
+      createdAt: p.createdAt,
+      updatedAt: p.updatedAt,
+    })) || []
   }
 }
 

@@ -1,5 +1,8 @@
 import { getAll } from '@/features/departments/repo'
 import { DepartmentsClient } from '@/features/departments/components/DepartmentsClient'
+export const metadata = {
+  title: 'Departmanlar',
+}
 
 export default async function DepartmentsPage() {
   const departments = await getAll()

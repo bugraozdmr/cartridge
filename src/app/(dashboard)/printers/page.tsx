@@ -7,6 +7,9 @@ import { SearchForm } from '@/components/ui/search-form'
 import { Pagination } from '@/components/ui/pagination'
 import { AddEntityDialog } from '@/components/ui/add-entity-dialog'
 import { addPrinter } from '@/features/printers/actions'
+export const metadata = {
+  title: 'Yazıcılar',
+}
 
 export default async function PrintersPage({
   searchParams: searchParamsPromise

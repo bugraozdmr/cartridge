@@ -1,0 +1,23 @@
+model Printer {
+  id              String       @id @default(cuid())
+  
+  serialNumber    String?      @unique 
+  inventoryNumber String?      @unique
+  
+  assignedTo      String?
+  
+  ipAddress       String?
+  
+  notes           String?      @db.Text
+  
+  printerModelId  String
+  printerModel    PrinterModel  @relation(fields: [printerModelId], references: [id], onDelete: Restrict)
+  
+  departmentId    String
+  department      Department    @relation(fields: [departmentId], references: [id], onDelete: Restrict)
+
+  stockOuts       StockOut[]
+
+  createdAt       DateTime      @default(now())
+  updatedAt       DateTime      @updatedAt
+}

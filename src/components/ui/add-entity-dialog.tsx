@@ -3,6 +3,7 @@
 import type React from 'react'
 import { useRef, useState, useEffect, useCallback } from 'react'
 import { Button } from '@/components/ui/button'
+import { SelectCustom } from '@/components/ui/select-custom'
 import { Dialog, DialogContent, DialogDescription, DialogHeader, DialogTitle, DialogTrigger, useDialogContext } from '@/components/ui/dialog'
 import { ImagePlusIcon, Loader2Icon, Trash2Icon } from 'lucide-react'
 import { toast } from 'react-hot-toast'
@@ -15,6 +16,7 @@ type AddEntityDialogProps = {
   triggerIcon?: React.ReactNode
   triggerClassName?: string
   triggerVariant?: "default" | "destructive" | "outline" | "secondary" | "ghost"
+  contentClassName?: string
   action: (formData: FormData) => Promise<void>
   defaultValues?: any
   fields: Array<{
@@ -22,12 +24,14 @@ type AddEntityDialogProps = {
     label: string
     placeholder?: string
     type?: string
+    options?: Array<{ value: string; label: string }>
+    value?: string
     step?: string
     required?: boolean
   }>
 }
 
-function AddEntityDialogInner({ title, description, triggerLabel, triggerIcon, triggerClassName, triggerVariant, action, defaultValues, fields }: AddEntityDialogProps) {
+function AddEntityDialogInner({ title, description, triggerLabel, triggerIcon, triggerClassName, triggerVariant, contentClassName, action, defaultValues, fields }: AddEntityDialogProps) {
   const formRef = useRef<HTMLFormElement>(null)
   const { open, setOpen } = useDialogContext()
   const [selectedFile, setSelectedFile] = useState<File | null>(null)
@@ -35,6 +39,7 @@ function AddEntityDialogInner({ title, description, triggerLabel, triggerIcon, t
   const [imagePreviewUrl, setImagePreviewUrl] = useState<string | null>(defaultValues?.imageUrl || null)
   const [removeImage, setRemoveImage] = useState(false)
   const [isPending, setIsPending] = useState(false)
+  const [selectValues, setSelectValues] = useState<Record<string, string>>({})
 
   // Reset state when dialog opens with new default values
   useEffect(() => {
@@ -43,6 +48,15 @@ function AddEntityDialogInner({ title, description, triggerLabel, triggerIcon, t
       setImageName(null)
       setSelectedFile(null)
       setRemoveImage(false)
+      setSelectValues(() => {
+        const nextValues: Record<string, string> = {}
+        for (const field of fields) {
+          if (field.type === 'select') {
+            nextValues[field.name] = (defaultValues?.[field.name] ?? field.value ?? '').toString()
+          }
+        }
+        return nextValues
+      })
     }
   }, [open, defaultValues])
 
@@ -105,7 +119,7 @@ function AddEntityDialogInner({ title, description, triggerLabel, triggerIcon, t
           </Button>
         )}
       </DialogTrigger>
-      <DialogContent>
+      <DialogContent className={contentClassName}>
         <DialogHeader>
           <DialogTitle>{title}</DialogTitle>
           <DialogDescription>{description}</DialogDescription>
@@ -119,7 +133,9 @@ function AddEntityDialogInner({ title, description, triggerLabel, triggerIcon, t
           <fieldset disabled={isPending} className="space-y-4 group">
             {fields.map((field) => (
               <label key={field.name} className="block space-y-2 relative">
-                <span className="text-sm font-medium text-foreground/90">{field.label}</span>
+                {field.type !== 'hidden' && (
+                  <span className="text-sm font-medium text-foreground/90">{field.label}</span>
+                )}
                 {field.type === 'image' ? (
                   <div className="flex flex-col gap-2 w-full">
                       {imagePreviewUrl ? (
@@ -175,6 +191,25 @@ function AddEntityDialogInner({ title, description, triggerLabel, triggerIcon, t
                         </label>
                       )}
                   </div>
+                ) : field.type === 'select' ? (
+                  <SelectCustom
+                    name={field.name}
+                    options={field.options || []}
+                    value={selectValues[field.name] || ''}
+                    onChange={(value) => setSelectValues(prev => ({ ...prev, [field.name]: value }))}
+                    placeholder={field.placeholder || 'Seçiniz...'}
+                    required={field.required ?? true}
+                  />
+                ) : field.type === 'textarea' ? (
+                  <textarea
+                    name={field.name}
+                    placeholder={field.placeholder}
+                    required={field.required ?? false}
+                    defaultValue={defaultValues?.[field.name]}
+                    className="w-full min-h-[80px] rounded-2xl border border-border bg-muted/40 px-4 py-2 text-sm text-foreground outline-none transition placeholder:text-muted-foreground focus:border-primary/60 focus:bg-background focus:ring-2 focus:ring-primary/20 disabled:opacity-50 disabled:cursor-not-allowed"
+                  />
+                ) : field.type === 'hidden' ? (
+                  <input type="hidden" name={field.name} defaultValue={field.value ?? defaultValues?.[field.name]} />
                 ) : (
                   <input
                     name={field.name}

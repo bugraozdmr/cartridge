@@ -61,7 +61,14 @@ export async function getPage({ query, page = 1, pageSize = 20 }: { query?: stri
 }
 
 export async function create(data: { name: string; currentPrice?: string; stock?: number; imageUrl?: string }) {
-  const payload: any = { name: data.name, stock: data.stock || 0, imageUrl: data.imageUrl || null }
+  // const payload: any = { name: data.name, stock: data.stock || 0, imageUrl: data.imageUrl || null }
+
+  const payload = { 
+    name: data.name, 
+    stock: data.stock || 0, 
+    imageUrl: data.imageUrl || null,
+    currentPrice: data.currentPrice || "0" 
+  }
 
   if (data.currentPrice !== undefined) payload.currentPrice = data.currentPrice
 

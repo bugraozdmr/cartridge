@@ -11,16 +11,30 @@ import {
   HashIcon,
   ReceiptIcon,
   TrendingDownIcon,
+  PrinterIcon,
 } from 'lucide-react'
 import { getDepartmentById } from '@/features/departments/detail-repo'
+import { getAll as getAllDepartments } from '@/features/departments/repo'
 import { DepartmentDetailActions } from '@/features/departments/components/DepartmentDetailActions'
+import { PrinterInstanceDetailDialog } from '@/features/printers/components/PrinterInstanceDetailDialog'
+import { StockOutTable } from '@/features/departments/components/StockOutTable'
+export async function generateMetadata({ params }: { params: Promise<{ id: string }> }) {
+  const { id } = await params
+  const dept = await getDepartmentById(id)
+
+  return {
+    title: dept ? `${dept.name} | Departman` : 'Departman',
+  }
+}
 
 export default async function DepartmentDetailPage({ params }: { params: Promise<{ id: string }> }) {
   const { id } = await params
   const dept = await getDepartmentById(id)
   if (!dept) notFound()
+  const allDepartments = await getAllDepartments()
 
   const totalQuantity = dept.stockOuts.reduce((s, o) => s + o.quantity, 0)
+  const totalPrinters = dept.printers.length
 
   // Group by cartridge for summary
   const cartridgeSummary = dept.stockOuts.reduce<
@@ -54,7 +68,7 @@ export default async function DepartmentDetailPage({ params }: { params: Promise
           <div className="flex-1 min-w-0">
             <h1 className="text-2xl font-bold text-foreground">{dept.name}</h1>
             <p className="mt-1 text-sm text-muted-foreground">
-              {dept.stockOuts.length} stok çıkışı · toplam {totalQuantity} adet
+              {dept.stockOuts.length} stok çıkışı · toplam {totalQuantity} adet · {totalPrinters} fiziksel yazıcı
             </p>
           </div>
           <DepartmentDetailActions department={{ id: dept.id, name: dept.name }} />
@@ -97,6 +111,37 @@ export default async function DepartmentDetailPage({ params }: { params: Promise
         </div>
       </div>
 
+      {/* Printers */}
+      <div className="rounded-2xl border border-border bg-card p-6 space-y-4">
+        <div>
+          <h2 className="text-base font-semibold text-foreground">Bağlı Yazıcılar</h2>
+          <p className="mt-0.5 text-sm text-muted-foreground">Bu departmana kayıtlı fiziksel yazıcılar.</p>
+        </div>
+
+        {dept.printers.length > 0 ? (
+          <div className="grid gap-3">
+            {dept.printers.map(printer => (
+              <PrinterInstanceDetailDialog
+                key={printer.id}
+                printerModelId={printer.printerModelId}
+                printerName={printer.printerModelName || 'Fiziksel Yazıcı'}
+                printer={{
+                  ...printer,
+                  departmentName: dept.name,
+                }}
+                departments={allDepartments.map(d => ({ value: d.id, label: d.name }))}
+                showActions={false}
+              />
+            ))}
+          </div>
+        ) : (
+          <div className="flex flex-col items-center justify-center rounded-xl border border-dashed border-border py-10">
+            <PrinterIcon className="h-10 w-10 text-muted-foreground/30 mb-2" />
+            <p className="text-sm text-muted-foreground">Bu departmana bağlı yazıcı yok.</p>
+          </div>
+        )}
+      </div>
+
       {/* Cartridge summary */}
       {summaryItems.length > 0 && (
         <div className="rounded-2xl border border-border bg-card p-6 space-y-4">
@@ -121,7 +166,7 @@ export default async function DepartmentDetailPage({ params }: { params: Promise
                 <span className="shrink-0 rounded-lg bg-rose-500/10 px-2.5 py-1 text-xs font-semibold text-rose-500">
                   {item.total} adet
                 </span>
-                <span className="text-xs text-muted-foreground group-hover:text-primary transition-colors">Detay →</span>
+                <span className="text-xs text-muted-foreground group-hover:text-primary transition-colors">→</span>
               </Link>
             ))}
           </div>
@@ -136,95 +181,7 @@ export default async function DepartmentDetailPage({ params }: { params: Promise
         </div>
 
         {dept.stockOuts.length > 0 ? (
-          <div className="overflow-x-auto -mx-6 px-6">
-            <table className="w-full min-w-[600px] text-sm border-collapse">
-              <thead>
-                <tr className="border-b border-border text-xs text-muted-foreground uppercase tracking-wider">
-                  <th className="pb-3 pr-4 text-left">
-                    <span className="flex items-center gap-1.5"><CalendarIcon className="h-3.5 w-3.5" />Tarih</span>
-                  </th>
-                  <th className="pb-3 px-4 text-left">
-                    <span className="flex items-center gap-1.5"><BoxIcon className="h-3.5 w-3.5" />Kartuş</span>
-                  </th>
-                  <th className="pb-3 px-4 text-right">
-                    <span className="flex justify-end items-center gap-1.5"><HashIcon className="h-3.5 w-3.5" />Adet</span>
-                  </th>
-                  <th className="pb-3 px-4 text-left">
-                    <span className="flex items-center gap-1.5"><UserIcon className="h-3.5 w-3.5" />Teslim Alan</span>
-                  </th>
-                  <th className="pb-3 pl-4 text-left">
-                    <span className="flex items-center gap-1.5"><StickyNoteIcon className="h-3.5 w-3.5" />Not</span>
-                  </th>
-                </tr>
-              </thead>
-              <tbody className="divide-y divide-border">
-                {dept.stockOuts.map(out => (
-                  <tr key={out.id} className="group">
-                    <td className="py-3.5 pr-4 font-medium text-foreground whitespace-nowrap">
-                      {new Date(out.issueDate).toLocaleDateString('tr-TR', {
-                        day: 'numeric', month: 'short', year: 'numeric'
-                      })}
-                    </td>
-                    <td className="py-3.5 px-4">
-                      <Link
-                        href={`/cartridges/${out.cartridge.id}`}
-                        className="flex items-center gap-2.5 hover:text-primary transition-colors"
-                      >
-                        {out.cartridge.imageUrl ? (
-                          <div className="relative h-7 w-7 shrink-0 overflow-hidden rounded-md border border-border">
-                            <Image src={out.cartridge.imageUrl} alt={out.cartridge.name} fill className="object-cover" sizes="28px" />
-                          </div>
-                        ) : (
-                          <div className="flex h-7 w-7 shrink-0 items-center justify-center rounded-md bg-emerald-400/20">
-                            <BoxIcon className="h-3.5 w-3.5 text-emerald-500" />
-                          </div>
-                        )}
-                        <span className="text-sm font-medium">{out.cartridge.name}</span>
-                      </Link>
-                    </td>
-                    <td className="py-3.5 px-4 text-right">
-                      <span className="inline-flex items-center rounded-lg bg-rose-500/10 px-2.5 py-0.5 text-xs font-semibold text-rose-500">
-                        {out.quantity} adet
-                      </span>
-                    </td>
-                    <td className="py-3.5 px-4 text-foreground/80">
-                      {out.receiverName ? (
-                        <span className="flex items-center gap-1.5">
-                          <UserIcon className="h-3.5 w-3.5 text-muted-foreground shrink-0" />
-                          {out.receiverName}
-                        </span>
-                      ) : (
-                        <span className="text-muted-foreground">—</span>
-                      )}
-                    </td>
-                    <td className="py-3.5 pl-4 max-w-[200px]">
-                      {out.notes ? (
-                        <span className="flex items-start gap-1.5 text-xs text-foreground/70">
-                          <StickyNoteIcon className="h-3.5 w-3.5 mt-0.5 text-muted-foreground shrink-0" />
-                          <span className="line-clamp-2">{out.notes}</span>
-                        </span>
-                      ) : (
-                        <span className="text-muted-foreground">—</span>
-                      )}
-                    </td>
-                  </tr>
-                ))}
-              </tbody>
-              {dept.stockOuts.length > 1 && (
-                <tfoot>
-                  <tr className="border-t border-border font-semibold text-foreground">
-                    <td className="pt-3 pr-4 text-xs text-muted-foreground uppercase" colSpan={2}>Toplam</td>
-                    <td className="pt-3 px-4 text-right">
-                      <span className="inline-flex items-center rounded-lg bg-rose-500/10 px-2.5 py-0.5 text-xs font-semibold text-rose-500">
-                        {totalQuantity} adet
-                      </span>
-                    </td>
-                    <td colSpan={2} />
-                  </tr>
-                </tfoot>
-              )}
-            </table>
-          </div>
+          <StockOutTable stockOuts={dept.stockOuts} totalQuantity={totalQuantity} />
         ) : (
           <div className="flex flex-col items-center justify-center rounded-xl border border-dashed border-border py-10">
             <ReceiptIcon className="h-10 w-10 text-muted-foreground/30 mb-2" />

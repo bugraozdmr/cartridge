@@ -1,0 +1,104 @@
+# Önce projeyi ziple
+
+# Sonrasında sunucuda /var/www altına taşı zipten çıkart vs.
+
+# Node version manager yükle
+curl -o- https://raw.githubusercontent.com/nvm-sh/nvm/v0.39.7/install.sh | bash
+
+# terminali yenile ya da yeni bir terminal aç
+source ~/.bashrc
+
+# En son kararlı node sürümünü kur
+nvm install --lts
+
+* --- *
+# Mysql yükle
+sudo apt update
+sudo apt install mysql-server -y
+
+# Kurulumu yap
+sudo mysql_secure_installation
+
+# sonra giriş yap
+sudo mysql
+
+# db ayarları yap
+CREATE DATABASE cartridge_db;
+
+CREATE USER 'tonerci'@'localhost' IDENTIFIED BY 'kidemlitonerci';
+
+GRANT ALL PRIVILEGES ON cartridge_db.* TO 'tonerci'@'localhost';
+
+FLUSH PRIVILEGES;
+EXIT;
+* --- *
+
+# Proje dizinine geç
+cd /var/www/cartridge
+
+# Paketleri çek
+npm install
+
+# Önce prisma şemaları oluştur ve db push et
+npx prisma generate
+npx prisma db push
+
+# Bir build et
+npm run build
+
+# PM2 ile sürekli ayakta kalmasını sağla
+npm install -g pm2
+pm2 start npm --name "cartridge" -- start
+
+# NGINX yükle reverse proxy yapacağız
+sudo apt install nginx -y
+
+# Yeni bir konfigürasyon dosyası oluştur
+sudo nano /etc/nginx/sites-available/cartridge
+
+# İÇERİK
+server {
+    listen 80;
+    server_name 192.168.0.213;
+
+    location / {
+        proxy_pass http://localhost:3000;
+        proxy_http_version 1.1;
+        proxy_set_header Upgrade $http_upgrade;
+        proxy_set_header Connection 'upgrade';
+        proxy_set_header Host $host;
+        proxy_cache_bypass $http_upgrade;
+    }
+}
+
+# Dosyayı aktif edilen siteler arasına sembolik linkle ekle
+sudo ln -s /etc/nginx/sites-available/cartridge /etc/nginx/sites-enabled/
+
+# Varsayılan Nginx sayfasını kaldır
+sudo rm /etc/nginx/sites-enabled/default
+
+# Ayarları test et
+sudo nginx -t
+
+# Nginx'i yeniden başlat
+sudo systemctl restart nginx
+
+# eğer hata alırsan
+pm2 status
+
+# ÖNEMLİ hatırlatma
+sudo chown -R $USER:$USER /var/www/proje-adin
+
+# Statik IP ataması sonrası hosts'a ekle
+
+# Resim hatası için
+npm install sharp
+
+# Yeniden başlat
+pm2 restart cartridge
+
+# Https olursa cookie yazamaz ondan http istiyoruz cookie yazarken
+secure: false
+
+# Veritabanı test etmek
+npx tsx test-db.ts

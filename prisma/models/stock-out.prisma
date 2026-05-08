@@ -7,6 +7,9 @@ model StockOut {
   
   departmentId String
   department   Department @relation(fields: [departmentId], references: [id], onDelete: Restrict)
+
+  printerId    String?    
+  printer      Printer?   @relation(fields: [printerId], references: [id], onDelete: SetNull)
   
   receiverName String?
   

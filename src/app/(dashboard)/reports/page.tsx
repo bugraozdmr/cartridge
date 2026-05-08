@@ -1,3 +1,6 @@
+export const metadata = {
+  title: 'Raporlar',
+}
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card"
 import { Badge } from "@/components/ui/badge"
 import { Button } from "@/components/ui/button"
@@ -17,12 +20,13 @@ import Link from 'next/link'
 import { getReportsData } from "@/features/reports/repo"
 import { ReportCharts } from "@/features/reports/components/ReportCharts"
 import { ReportFilters } from "@/features/reports/components/ReportFilters"
+import { ReportExportControls } from "@/features/reports/components/ReportExportControls"
 import { startOfDay, endOfDay, parseISO, format, subDays } from "date-fns"
 import { tr } from 'date-fns/locale'
 import { cn } from "@/lib/utils"
 import { ImagePreview } from "@/components/ui/image-preview"
 import { Pagination } from "@/components/ui/pagination"
-import { ExportButton } from "@/features/reports/components/ExportButton"
+import { getAll as getAllDepartments } from "@/features/departments/repo"
 
 const PAGE_SIZE = 10
 
@@ -38,6 +42,7 @@ export default async function ReportsPage({
   const pageOut = Number(params.pageOut) || 1
 
   const fullData = await getReportsData({ start: startDate, end: endDate })
+  const departments = await getAllDepartments()
 
   // Paginate Entries
   const totalInPages = Math.ceil(fullData.stockEntries.length / PAGE_SIZE)
@@ -94,8 +99,9 @@ export default async function ReportsPage({
         <div className="flex w-full flex-col gap-2 sm:flex-row sm:items-center lg:w-auto">
           <ReportFilters />
           <div className="hidden h-10 w-px bg-border/50 mx-2 lg:block" />
-          <ExportButton
+          <ReportExportControls
             data={fullData}
+            departments={departments.map((department) => ({ id: department.id, name: department.name }))}
             startDate={startDate}
             endDate={endDate}
           />
@@ -248,6 +254,11 @@ export default async function ReportsPage({
                         <p className="text-sm font-semibold text-foreground truncate">{o.cartridgeName}</p>
                         <p className="text-xs text-muted-foreground">{format(o.date, 'dd MMMM yyyy', { locale: tr })}</p>
                         <p className="text-xs text-muted-foreground">{o.departmentName}</p>
+                        {o.printerId && o.printerLabel && (
+                          <Link href={`/printers/instances/${o.printerId}`} className="mt-1 inline-flex items-center rounded-lg bg-muted px-2 py-0.5 text-[11px] font-semibold text-muted-foreground border border-border hover:text-foreground transition-colors">
+                            {o.printerLabel}
+                          </Link>
+                        )}
                       </div>
                       <div className="text-right">
                         <p className="text-sm font-bold text-rose-500">-{o.quantity}</p>
@@ -262,6 +273,7 @@ export default async function ReportsPage({
                     <tr className="bg-muted/30 border-b border-border/50">
                       <th className="px-4 py-4 font-semibold text-muted-foreground uppercase tracking-wider text-[10px] sm:px-8">İşlem Tarihi</th>
                       <th className="px-4 py-4 font-semibold text-muted-foreground uppercase tracking-wider text-[10px] sm:px-8">İlgili Departman</th>
+                      <th className="px-4 py-4 font-semibold text-muted-foreground uppercase tracking-wider text-[10px] sm:px-8">Yazıcı</th>
                       <th className="px-4 py-4 font-semibold text-muted-foreground uppercase tracking-wider text-[10px] sm:px-8">Verilen Ürün</th>
                       <th className="px-4 py-4 font-semibold text-muted-foreground uppercase tracking-wider text-[10px] text-right sm:px-8">Miktar (Adet)</th>
                     </tr>
@@ -275,6 +287,15 @@ export default async function ReportsPage({
                             {o.departmentName}
                           </span>
                         </td>
+                        <td className="px-4 py-4 sm:px-8">
+                          {o.printerId && o.printerLabel ? (
+                            <Link href={`/printers/instances/${o.printerId}`} className="inline-flex items-center rounded-lg bg-sky-500/10 px-2.5 py-0.5 text-xs font-semibold text-sky-500 border border-sky-500/20 hover:bg-sky-500/15 transition-colors">
+                              {o.printerLabel}
+                            </Link>
+                          ) : (
+                            <span className="text-muted-foreground">—</span>
+                          )}
+                        </td>
                         <td className="px-4 py-4 font-medium text-foreground sm:px-8">{o.cartridgeName}</td>
                         <td className="px-4 py-4 text-right sm:px-8">
                           <span className="font-bold text-lg text-rose-500">-{o.quantity}</span>
@@ -283,7 +304,7 @@ export default async function ReportsPage({
                     ))}
                     {paginatedOuts.length === 0 && (
                       <tr>
-                        <td colSpan={4} className="px-4 py-10 text-center text-muted-foreground italic sm:px-8">Bu dönemde tüketim bulunmuyor.</td>
+                        <td colSpan={5} className="px-4 py-10 text-center text-muted-foreground italic sm:px-8">Bu dönemde tüketim bulunmuyor.</td>
                       </tr>
                     )}
                   </tbody>
@@ -291,6 +312,7 @@ export default async function ReportsPage({
                     <tfoot className="bg-muted/10 border-t-2 border-border/50">
                       <tr>
                         <td colSpan={2} className="px-4 py-5 font-bold text-foreground sm:px-8 italic text-xs uppercase tracking-widest">Seçili Aralık Toplamı</td>
+                        <td className="px-4 py-5 font-bold text-foreground sm:px-8">---</td>
                         <td className="px-4 py-5 font-bold text-foreground sm:px-8">---</td>
                         <td className="px-4 py-5 text-right font-black text-rose-500 text-lg sm:px-8">
                           {fullData.summary.totalUnitsIssued} Adet

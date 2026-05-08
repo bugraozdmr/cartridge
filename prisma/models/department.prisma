@@ -3,4 +3,6 @@ model Department {
   name        String     @unique
   
   stockOuts   StockOut[] 
+
+  printers  Printer[]
 }

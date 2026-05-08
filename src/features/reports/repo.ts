@@ -25,8 +25,9 @@ export async function getReportsData(filters: ReportFilters) {
         issueDate: { gte: start, lte: end }
       },
       include: {
-        cartridge: { select: { name: true, currentPrice: true } },
-        department: { select: { name: true } }
+        cartridge: { select: { id: true, name: true, currentPrice: true } },
+        department: { select: { id: true, name: true } },
+        printer: { select: { id: true, serialNumber: true, inventoryNumber: true } }
       },
       orderBy: { issueDate: 'desc' }
     }),
@@ -53,20 +54,22 @@ export async function getReportsData(filters: ReportFilters) {
   // 1. Spend by Cartridge
   const spendByCartridge = stockEntries.reduce((acc, curr) => {
     const name = curr.cartridge.name
-    if (!acc[name]) acc[name] = { name, total: 0, quantity: 0 }
+    const id = curr.cartridge.id
+    if (!acc[name]) acc[name] = { id, name, total: 0, quantity: 0 }
     acc[name].total += (Number(curr.unitPrice) * curr.quantity)
     acc[name].quantity += curr.quantity
     return acc
-  }, {} as Record<string, { name: string, total: number, quantity: number }>)
+  }, {} as Record<string, { id: string, name: string, total: number, quantity: number }>)
 
   // 2. Consumption by Department
   const consumptionByDept = stockOuts.reduce((acc, curr) => {
     const name = curr.department.name
-    if (!acc[name]) acc[name] = { name, totalValue: 0, quantity: 0 }
+    const id = curr.departmentId
+    if (!acc[name]) acc[name] = { id, name, totalValue: 0, quantity: 0 }
     acc[name].totalValue += (Number(curr.cartridge.currentPrice) * curr.quantity)
     acc[name].quantity += curr.quantity
     return acc
-  }, {} as Record<string, { name: string, totalValue: number, quantity: number }>)
+  }, {} as Record<string, { id: string, name: string, totalValue: number, quantity: number }>)
 
   return {
     summary: {
@@ -88,14 +91,18 @@ export async function getReportsData(filters: ReportFilters) {
       id: o.id,
       date: o.issueDate,
       cartridgeName: o.cartridge.name,
+      cartridgeId: o.cartridge.id,
       departmentName: o.department.name,
+      departmentId: o.department.id,
       quantity: o.quantity,
+      printerId: o.printer?.id ?? null,
+      printerLabel: o.printer?.serialNumber || o.printer?.inventoryNumber || null,
       currentUnitPrice: Number(o.cartridge.currentPrice),
       totalValue: Number(o.cartridge.currentPrice) * o.quantity
     })),
     analytics: {
       spendByCartridge: Object.values(spendByCartridge).sort((a, b) => b.total - a.total),
-      consumptionByDept: Object.values(consumptionByDept).sort((a, b) => b.totalValue - a.totalValue)
+      consumptionByDept: Object.values(consumptionByDept).sort((a, b) => b.quantity - a.quantity)
     }
   }
 }

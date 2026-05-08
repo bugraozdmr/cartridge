@@ -121,7 +121,7 @@ export function BulkEntryForm({ cartridges }: BulkEntryFormProps) {
       </div>
 
       <Card className="border-border bg-card/60 rounded-[2rem] overflow-hidden shadow-sm">
-        <CardHeader className="border-b border-border/50 px-8 py-6">
+        <CardHeader className="px-8 py-6">
           <div className="flex flex-col gap-4 sm:flex-row sm:items-center sm:justify-between">
             <div>
               <CardTitle>Ürün Listesi</CardTitle>
@@ -141,11 +141,11 @@ export function BulkEntryForm({ cartridges }: BulkEntryFormProps) {
           <div className="overflow-x-auto">
             <Table>
               <TableHeader>
-                <TableRow className="bg-muted/30 border-border/50 hover:bg-muted/30">
-                  <TableHead className="px-8 py-4 font-bold text-[10px] uppercase tracking-widest">Ürün Adı</TableHead>
-                  <TableHead className="px-8 py-4 font-bold text-[10px] uppercase tracking-widest text-center">Mevcut Stok</TableHead>
-                  <TableHead className="px-8 py-4 font-bold text-[10px] uppercase tracking-widest w-40 text-center">Gelen Miktar</TableHead>
-                  <TableHead className="px-8 py-4 font-bold text-[10px] uppercase tracking-widest w-48 text-center">Birim Fiyat (TL)</TableHead>
+                <TableRow className="border-b border-border/30 hover:bg-transparent">
+                  <TableHead className="px-8 py-4 font-semibold text-xs text-muted-foreground tracking-wide">Ürün Adı</TableHead>
+                  <TableHead className="px-8 py-4 font-semibold text-xs text-muted-foreground tracking-wide text-center">Mevcut Stok</TableHead>
+                  <TableHead className="px-8 py-4 font-semibold text-xs text-muted-foreground tracking-wide w-40 text-center">Gelen Miktar</TableHead>
+                  <TableHead className="px-8 py-4 font-semibold text-xs text-muted-foreground tracking-wide w-48 text-center">Birim Fiyat (TL)</TableHead>
                 </TableRow>
               </TableHeader>
               <TableBody className="divide-y divide-border/50">

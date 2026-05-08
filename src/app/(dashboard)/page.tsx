@@ -9,6 +9,9 @@ import { cn } from "@/lib/utils";
 import { getDashboardData } from "@/features/dashboard/repo";
 import { DashboardCharts } from "@/features/dashboard/components/DashboardCharts";
 import { startOfMonth, endOfMonth, subMonths, parseISO } from 'date-fns';
+export const metadata = {
+    title: 'Genel Bakış',
+}
 
 export default async function DashboardPage({
     searchParams
@@ -60,15 +63,15 @@ export default async function DashboardPage({
                     <h1 className="text-4xl font-black tracking-tight bg-gradient-to-br from-foreground to-foreground/50 bg-clip-text text-transparent">Genel Görünüm</h1>
                     <p className="text-sm text-muted-foreground font-medium italic">Envanter ve stok hareketlerini izleyin.</p>
                 </div>
-                <div className="flex items-center gap-2 rounded-2xl border border-border bg-card p-1.5 shadow-sm">
+                {/*<div className="flex items-center gap-2 rounded-2xl border border-border bg-card p-1.5 shadow-sm">
                     <Link href="/?start=&end=" className={cn("px-4 py-1.5 text-xs font-medium rounded-xl transition-all", !params.start ? "bg-primary text-primary-foreground shadow-lg shadow-primary/20" : "text-muted-foreground hover:bg-muted")}>
                         Son 6 Ay
                     </Link>
                     <Link href={`/?start=${startOfMonth(new Date()).toISOString()}&end=${endOfMonth(new Date()).toISOString()}`} className={cn("px-4 py-1.5 text-xs font-medium rounded-xl transition-all", params.start?.startsWith(new Date().getFullYear().toString()) ? "bg-primary text-primary-foreground shadow-lg shadow-primary/20" : "text-muted-foreground hover:bg-muted")}>
                         Bu Ay
                     </Link>
-                </div>
-            </div>
+                </div>*/}
+            </div> 
 
             <section className="grid gap-4 sm:grid-cols-2 lg:grid-cols-4">
                 {metrics.map((metric) => {
@@ -168,7 +171,15 @@ export default async function DashboardPage({
                                     </div>
                                     <div className="min-w-0 flex-1">
                                         <p className="text-[13px] font-semibold text-foreground truncate sm:text-sm">{act.title}</p>
-                                        <p className="text-[11px] text-muted-foreground sm:text-xs">{act.meta}</p>
+                                        
+                                        <div className="flex items-center gap-2">
+                                          <p className="text-[11px] text-muted-foreground sm:text-xs">{act.meta}</p>
+                                          {act.printerId && (
+                                            <Link href={`/printers/instances/${act.printerId}`} className="text-xs text-muted-foreground hover:text-foreground ml-2">
+                                              <span className="inline-flex items-center rounded-lg bg-muted/40 px-2 py-0.5 text-xs font-medium">{act.printerLabel}</span>
+                                            </Link>
+                                          )}
+                                        </div>
                                     </div>
                                 </div>
                             )) : (

@@ -10,6 +10,9 @@ import { addCartridge } from '@/features/cartridges/actions'
 import { Button } from '@/components/ui/button'
 import Link from 'next/link'
 import { PlusIcon } from 'lucide-react'
+export const metadata = {
+  title: 'Kartuşlar',
+}
 
 export default async function CartridgesPage({
   searchParams: searchParamsPromise

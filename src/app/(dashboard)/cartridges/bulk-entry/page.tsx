@@ -2,6 +2,9 @@ import { getAllCompact } from "@/features/cartridges/repo"
 import { BulkEntryForm } from "@/features/cartridges/components/BulkEntryForm"
 
 export const dynamic = 'force-dynamic'
+export const metadata = {
+  title: 'Toplu Giriş',
+}
 
 export default async function BulkEntryPage() {
   const cartridges = await getAllCompact()

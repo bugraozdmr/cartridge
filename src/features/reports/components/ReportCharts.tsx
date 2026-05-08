@@ -1,6 +1,7 @@
 'use client'
 
 import { useEffect, useState } from 'react'
+import { useRouter } from 'next/navigation'
 import { 
   BarChart, 
   Bar, 
@@ -19,12 +20,13 @@ import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@/com
 const COLORS = ['#10b981', '#3b82f6', '#8b5cf6', '#f59e0b', '#ef4444', '#06b6d4']
 
 interface ReportChartsProps {
-  spendByCartridge: { name: string, total: number }[]
-  consumptionByDept: { name: string, totalValue: number }[]
+  spendByCartridge: { id: string, name: string, total: number }[]
+  consumptionByDept: { id: string, name: string, quantity: number, totalValue: number }[]
 }
 
 export function ReportCharts({ spendByCartridge, consumptionByDept }: ReportChartsProps) {
   const [isMobile, setIsMobile] = useState(false)
+  const router = useRouter()
   const deptData = consumptionByDept.slice(0, 6)
 
   useEffect(() => {
@@ -44,7 +46,16 @@ export function ReportCharts({ spendByCartridge, consumptionByDept }: ReportChar
         </CardHeader>
         <CardContent className="h-[260px] sm:h-[300px] lg:h-[350px]">
           <ResponsiveContainer width="100%" height="100%">
-            <BarChart data={spendByCartridge.slice(0, 6)} layout="vertical" margin={{ left: isMobile ? 8 : 40, right: isMobile ? 8 : 40 }}>
+            <BarChart
+              data={spendByCartridge.slice(0, 6)}
+              layout="vertical"
+              margin={{ left: isMobile ? 8 : 40, right: isMobile ? 8 : 40 }}
+              onClick={(state: any) => {
+                const payload = state?.activePayload?.[0]?.payload
+                if (payload?.id) router.push(`/cartridges/${payload.id}`)
+              }}
+              style={{ cursor: 'pointer' }}
+            >
               <CartesianGrid strokeDasharray="3 3" horizontal={true} vertical={false} stroke="hsla(var(--border), 0.5)" />
               <XAxis type="number" hide />
               <YAxis 
@@ -60,7 +71,7 @@ export function ReportCharts({ spendByCartridge, consumptionByDept }: ReportChar
                 content={({ active, payload, label }) => {
                   if (active && payload && payload.length) {
                     return (
-                      <div className="bg-card border border-border p-3 rounded-xl shadow-xl">
+                      <div className="bg-card border border-border p-3 rounded-xl shadow-[var(--surface-shadow-soft)]">
                         <p className="text-xs font-bold text-muted-foreground uppercase mb-1">{label}</p>
                         <p className="text-sm font-bold text-emerald-500">
                           {Number(payload[0].value || 0).toLocaleString('tr-TR', { style: 'currency', currency: 'TRY' })}
@@ -71,7 +82,7 @@ export function ReportCharts({ spendByCartridge, consumptionByDept }: ReportChar
                   return null
                 }}
               />
-              <Bar dataKey="total" fill="#10b981" radius={[0, 6, 6, 0]} barSize={isMobile ? 18 : 25} />
+              <Bar dataKey="total" fill="#10b981" radius={[0, 6, 6, 0]} barSize={isMobile ? 18 : 25} cursor="pointer" />
             </BarChart>
           </ResponsiveContainer>
         </CardContent>
@@ -80,8 +91,8 @@ export function ReportCharts({ spendByCartridge, consumptionByDept }: ReportChar
       {/* Consumption by Dept Pie Chart */}
       <Card className="border-border bg-card/60 rounded-[2rem]">
         <CardHeader>
-          <CardTitle>Departman Gider Dağılımı</CardTitle>
-          <CardDescription>Departmanların tükettiği ürünlerin tahmini maliyeti.</CardDescription>
+          <CardTitle>Departman Dağılımı</CardTitle>
+          <CardDescription>Departmanların tükettiği toplam adet.</CardDescription>
         </CardHeader>
         <CardContent className="h-[260px] sm:h-[300px] lg:h-[350px]">
           {deptData.length > 0 ? (
@@ -94,11 +105,16 @@ export function ReportCharts({ spendByCartridge, consumptionByDept }: ReportChar
                   innerRadius={isMobile ? 52 : 70}
                   outerRadius={isMobile ? 78 : 100}
                   paddingAngle={5}
-                  dataKey="totalValue"
+                  dataKey="quantity"
                   nameKey="name"
+                  onClick={(state: any) => {
+                    const payload = state?.payload
+                    if (payload?.id) router.push(`/departments/${payload.id}`)
+                  }}
+                  cursor="pointer"
                 >
                   {deptData.map((entry, index) => (
-                    <Cell key={`cell-${index}`} fill={COLORS[index % COLORS.length]} />
+                    <Cell key={`cell-${index}`} fill={COLORS[index % COLORS.length]} cursor="pointer" />
                   ))}
                 </Pie>
                 <Tooltip 
@@ -106,10 +122,10 @@ export function ReportCharts({ spendByCartridge, consumptionByDept }: ReportChar
                     if (active && payload && payload.length) {
                       const data = payload[0].payload
                       return (
-                        <div className="bg-card border border-border p-3 rounded-xl shadow-xl">
+                        <div className="bg-card border border-border p-3 rounded-xl shadow-[var(--surface-shadow-soft)]">
                           <p className="text-xs font-bold text-muted-foreground uppercase mb-1">{data.name}</p>
-                          <p className="text-sm font-bold">
-                            {Number(data.totalValue).toLocaleString('tr-TR', { style: 'currency', currency: 'TRY' })}
+                          <p className="text-sm font-bold text-emerald-500">
+                            {data.quantity} adet
                           </p>
                         </div>
                       )
@@ -122,7 +138,7 @@ export function ReportCharts({ spendByCartridge, consumptionByDept }: ReportChar
             </ResponsiveContainer>
           ) : (
             <div className="flex h-full items-center justify-center rounded-2xl border border-dashed border-border/70 bg-muted/10 text-sm text-muted-foreground">
-              Bu dönemde departman gideri bulunmuyor.
+              Bu dönemde departman dağılımı bulunmuyor.
             </div>
           )}
         </CardContent>

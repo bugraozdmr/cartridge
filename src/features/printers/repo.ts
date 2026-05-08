@@ -66,3 +66,54 @@ export async function update(id: string, data: { name?: string; imageUrl?: strin
 
   return prisma.printerModel.update({ where: { id }, data: payload })
 }
+
+export async function getPrintersByModelId(printerModelId: string) {
+  const items = await prisma.printer.findMany({
+    where: { printerModelId },
+    include: { department: { select: { id: true, name: true } } },
+    orderBy: { createdAt: 'desc' }
+  })
+
+  return items.map(p => ({
+    id: p.id,
+    serialNumber: p.serialNumber || null,
+    inventoryNumber: p.inventoryNumber || null,
+    assignedTo: p.assignedTo || null,
+    ipAddress: p.ipAddress || null,
+    notes: p.notes || null,
+    departmentId: p.departmentId,
+    departmentName: p.department?.name || null,
+    createdAt: p.createdAt,
+    updatedAt: p.updatedAt,
+  }))
+}
+
+export async function createPrinter(printerModelId: string, data: { serialNumber?: string; inventoryNumber?: string; assignedTo?: string; ipAddress?: string; notes?: string; departmentId: string }) {
+  return prisma.printer.create({ data: {
+    serialNumber: data.serialNumber || undefined,
+    inventoryNumber: data.inventoryNumber || undefined,
+    assignedTo: data.assignedTo || undefined,
+    ipAddress: data.ipAddress || undefined,
+    notes: data.notes || undefined,
+    printerModelId,
+    departmentId: data.departmentId,
+  } })
+}
+
+export async function updatePrinterInstance(id: string, data: { serialNumber?: string; inventoryNumber?: string; assignedTo?: string; ipAddress?: string; notes?: string; departmentId: string }) {
+  return prisma.printer.update({
+    where: { id },
+    data: {
+      serialNumber: data.serialNumber || null,
+      inventoryNumber: data.inventoryNumber || null,
+      assignedTo: data.assignedTo || null,
+      ipAddress: data.ipAddress || null,
+      notes: data.notes || null,
+      departmentId: data.departmentId,
+    }
+  })
+}
+
+export async function removePrinterInstance(id: string) {
+  return prisma.printer.delete({ where: { id } })
+}

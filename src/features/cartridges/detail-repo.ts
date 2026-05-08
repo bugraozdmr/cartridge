@@ -13,7 +13,8 @@ export async function getById(id: string) {
       stockOuts: {
         orderBy: { issueDate: 'desc' },
         include: {
-          department: { select: { id: true, name: true } }
+          department: { select: { id: true, name: true } },
+          printer: { select: { id: true, serialNumber: true, inventoryNumber: true } }
         }
       }
     }
@@ -39,6 +40,11 @@ export async function getById(id: string) {
       quantity: o.quantity,
       issueDate: o.issueDate,
       department: o.department,
+      printer: o.printer ? {
+        id: o.printer.id,
+        serialNumber: o.printer.serialNumber,
+        inventoryNumber: o.printer.inventoryNumber,
+      } : null,
       receiverName: o.receiverName,
       notes: o.notes,
     })),

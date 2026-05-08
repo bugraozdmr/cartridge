@@ -30,6 +30,7 @@ export function SelectCustom({
 }: SelectCustomProps) {
   const [open, setOpen] = React.useState(false)
   const [search, setSearch] = React.useState("")
+  const [openUpward, setOpenUpward] = React.useState(false)
   const containerRef = React.useRef<HTMLDivElement>(null)
 
   const selectedOption = options.find((opt) => opt.value === value)
@@ -48,6 +49,17 @@ export function SelectCustom({
     return () => document.removeEventListener("mousedown", handleClickOutside)
   }, [])
 
+  React.useEffect(() => {
+    if (!open || !containerRef.current) return
+
+    const rect = containerRef.current.getBoundingClientRect()
+    const spaceBelow = window.innerHeight - rect.bottom
+    const spaceAbove = rect.top
+    const estimatedDropdownHeight = options.length > 5 ? 320 : 260
+
+    setOpenUpward(spaceBelow < estimatedDropdownHeight && spaceAbove > spaceBelow)
+  }, [open, options.length])
+
   return (
     <div className={cn("relative w-full", className)} ref={containerRef}>
       {/* Hidden input for form submission */}
@@ -60,7 +72,7 @@ export function SelectCustom({
 
       <button
         type="button"
-        onClick={() => setOpen(!open)}
+        onClick={() => setOpen((currentOpen) => !currentOpen)}
         className={cn(
           "flex h-11 w-full items-center justify-between rounded-xl border border-border bg-muted/40 px-4 py-2 text-sm transition-all focus:border-primary/60 focus:ring-2 focus:ring-primary/20 hover:bg-muted/60",
           !value && "text-muted-foreground",
@@ -74,7 +86,7 @@ export function SelectCustom({
       </button>
 
       {open && (
-        <div className="absolute z-50 mt-2 w-full animate-in fade-in zoom-in-95 duration-200">
+        <div className={cn("absolute z-50 w-full animate-in fade-in zoom-in-95 duration-200", openUpward ? "bottom-full mb-2" : "top-full mt-2")}>
           <div className="overflow-hidden rounded-2xl border border-border bg-card shadow-2xl">
             {options.length > 5 && (
               <div className="flex items-center border-b border-border/50 px-3 py-2">

@@ -1,6 +1,6 @@
 'use client'
 
-import { useState, useRef, useTransition } from 'react'
+import { useState, useRef, useTransition, useEffect } from 'react'
 import { ArrowUpRightIcon, Loader2Icon, CalendarIcon, BuildingIcon, UserIcon, FileTextIcon } from 'lucide-react'
 import { toast } from 'react-hot-toast'
 import { Dialog, DialogContent, DialogHeader, DialogTitle, DialogTrigger, DialogDescription } from '@/components/ui/dialog'
@@ -9,6 +9,7 @@ import { SelectCustom } from '@/components/ui/select-custom'
 import { addStockOut } from '../stock-actions'
 
 interface Department { id: string; name: string }
+interface Printer { id: string; serialNumber?: string | null; inventoryNumber?: string | null }
 
 interface AddStockOutDialogProps {
   cartridgeId: string
@@ -20,8 +21,39 @@ export function AddStockOutDialog({ cartridgeId, currentStock, departments }: Ad
   const [open, setOpen] = useState(false)
   const [isPending, startTransition] = useTransition()
   const [selectedDeptId, setSelectedDeptId] = useState<string>('')
+  const [printers, setPrinters] = useState<Printer[]>([])
+  const [selectedPrinterId, setSelectedPrinterId] = useState<string>('')
+  const [loadingPrinters, setLoadingPrinters] = useState(false)
   const formRef = useRef<HTMLFormElement>(null)
   const today = new Date().toISOString().split('T')[0]
+
+  useEffect(() => {
+    if (!selectedDeptId) {
+      setPrinters([])
+      setSelectedPrinterId('')
+      return
+    }
+
+    let cancelled = false
+    async function load() {
+      setLoadingPrinters(true)
+      try {
+        const res = await fetch(`/api/printers?departmentId=${selectedDeptId}`)
+        if (!res.ok) throw new Error('Yazıcılar yüklenemedi')
+        const data = await res.json()
+        if (cancelled) return
+        setPrinters(data)
+        setSelectedPrinterId('')
+      } catch (err) {
+        console.error(err)
+        toast.error('Yazıcılar yüklenirken hata oldu.')
+      } finally {
+        if (!cancelled) setLoadingPrinters(false)
+      }
+    }
+    load()
+    return () => { cancelled = true }
+  }, [selectedDeptId])
 
   const handleSubmit = (e: React.FormEvent<HTMLFormElement>) => {
     e.preventDefault()
@@ -102,6 +134,21 @@ export function AddStockOutDialog({ cartridgeId, currentStock, departments }: Ad
                 </p>
               )}
             </label>
+
+            {/* Printer (dependent) */}
+            {selectedDeptId && (
+              <label className="block space-y-2">
+                <span className="text-sm font-medium text-foreground/90">Yazıcı <span className="text-muted-foreground font-normal">(isteğe bağlı)</span></span>
+                <SelectCustom
+                  name="printerId"
+                  options={printers.map(p => ({ value: p.id, label: p.serialNumber || p.inventoryNumber || p.id }))}
+                  value={selectedPrinterId}
+                  onChange={setSelectedPrinterId}
+                  placeholder={loadingPrinters ? 'Yükleniyor...' : printers.length ? 'Yazıcı seçin (isteğe bağlı)...' : 'Seçilen departmana ait yazıcı yok'}
+                  required={false}
+                />
+              </label>
+            )}
 
             {/* Quantity */}
             <label className="block space-y-2">

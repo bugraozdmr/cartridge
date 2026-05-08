@@ -3,6 +3,7 @@ model PrinterModel {
   name       String      @unique
   imageUrl   String?
   cartridges Cartridge[]
+  printers   Printer[]
   createdAt  DateTime    @default(now())
   updatedAt  DateTime    @updatedAt
 }

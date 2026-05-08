@@ -11,7 +11,7 @@ import { tr } from 'date-fns/locale'
 interface ExportButtonProps {
   data: {
     stockEntries: any[]
-    stockOuts: any[]
+    stockOuts: { date: Date | string; departmentName: string; cartridgeName: string; quantity: number; printerLabel?: string | null }[]
   }
   startDate: Date
   endDate: Date
@@ -100,6 +100,7 @@ export function ExportButton({ data, startDate, endDate }: ExportButtonProps) {
       outSheet.columns = [
         { header: 'İşlem Tarihi', key: 'date', width: 18 },
         { header: 'Departman', key: 'department', width: 35 },
+        { header: 'Yazıcı', key: 'printer', width: 35 },
         { header: 'Ürün Adı', key: 'cartridge', width: 45 },
         { header: 'Miktar', key: 'quantity', width: 15 },
       ]
@@ -127,6 +128,7 @@ export function ExportButton({ data, startDate, endDate }: ExportButtonProps) {
         const row = outSheet.addRow({
           date: format(new Date(o.date), 'dd MMMM yyyy', { locale: tr }),
           department: o.departmentName,
+          printer: o.printerLabel || '—',
           cartridge: o.cartridgeName,
           quantity: o.quantity
         })

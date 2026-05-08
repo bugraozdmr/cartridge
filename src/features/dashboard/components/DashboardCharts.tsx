@@ -104,7 +104,7 @@ export function DashboardCharts({ stockInData, stockOutData }: DashboardChartsPr
                 content={({ active, payload, label }) => {
                   if (active && payload && payload.length) {
                     return (
-                      <div className="bg-card border border-border p-3 rounded-xl shadow-xl">
+                      <div className="bg-card border border-border p-3 rounded-xl shadow-[var(--surface-shadow-soft)]">
                         <p className="text-xs font-bold text-muted-foreground uppercase mb-1">{label}</p>
                         <p className={cn("text-lg font-bold", activeTab === 'in' ? "text-emerald-500" : "text-rose-500")}>
                           {activeTab === 'in' 

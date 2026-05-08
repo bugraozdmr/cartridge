@@ -2,14 +2,28 @@ import { notFound } from 'next/navigation'
 import Link from 'next/link'
 import { ArrowLeftIcon, PrinterIcon, BoxIcon } from 'lucide-react'
 import { getById } from '@/features/printers/detail-repo'
+import { addPhysicalPrinter } from '@/features/printers/detail-actions'
+import { getAll as getDepartments } from '@/features/departments/repo'
 import { CartridgeSelector } from '@/features/printers/components/CartridgeSelector'
 import { PrinterDetailActions } from '@/features/printers/components/PrinterDetailActions'
+import { PrinterInstanceDetailDialog } from '@/features/printers/components/PrinterInstanceDetailDialog'
 import { ImagePreview } from '@/components/ui/image-preview'
+import { AddEntityDialog } from '@/components/ui/add-entity-dialog'
+export async function generateMetadata({ params }: { params: Promise<{ id: string }> }) {
+  const { id } = await params
+  const printer = await getById(id)
+
+  return {
+    title: printer ? `${printer.name} | Yazıcı` : 'Yazıcı',
+  }
+}
 
 export default async function PrinterDetailPage({ params }: { params: Promise<{ id: string }> }) {
   const { id } = await params
   const printer = await getById(id)
   if (!printer) notFound()
+
+  const departments = await getDepartments()
 
   return (
     <div className="space-y-8">
@@ -62,6 +76,47 @@ export default async function PrinterDetailPage({ params }: { params: Promise<{ 
             imageUrl: c.imageUrl ?? null,
           }))}
         />
+      </div>
+
+      {/* Real printers (instances) */}
+      <div className="rounded-2xl border border-border bg-card p-6 space-y-5">
+        <div className="flex items-center justify-between">
+          <div>
+            <h2 className="text-lg font-semibold text-foreground">Yazıcılar</h2>
+            <p className="mt-0.5 text-sm text-muted-foreground">Bu model altında kayıtlı fiziksel yazıcıları yönetin.</p>
+          </div>
+          <AddEntityDialog
+            title="Yeni Yazıcı Ekle"
+            description="Bu yazıcı modeline bağlı gerçek bir yazıcı ekleyin."
+            triggerLabel="Yeni Yazıcı"
+            action={addPhysicalPrinter}
+            fields={[
+              { name: 'printerModelId', label: 'printerModelId', type: 'hidden', value: printer.id },
+              { name: 'serialNumber', label: 'Seri Numarası', placeholder: 'Opsiyonel', required: false },
+              { name: 'inventoryNumber', label: 'Envanter Numarası', placeholder: 'Opsiyonel', required: false },
+              { name: 'assignedTo', label: 'Atanan Kişi / Yer', placeholder: 'Opsiyonel', required: false },
+              { name: 'ipAddress', label: 'IP Adresi', placeholder: 'Opsiyonel', required: false },
+              { name: 'notes', label: 'Notlar', placeholder: 'Opsiyonel', type: 'textarea', required: false },
+              { name: 'departmentId', label: 'Departman', type: 'select', required: true, options: departments.map(d => ({ value: d.id, label: d.name })) }
+            ]}
+          />
+        </div>
+
+        {printer.printers && printer.printers.length > 0 ? (
+          <div className="grid gap-3">
+            {printer.printers.map(p => (
+              <PrinterInstanceDetailDialog
+                key={p.id}
+                printerModelId={printer.id}
+                printerName={printer.name}
+                printer={p}
+                departments={departments.map(d => ({ value: d.id, label: d.name }))}
+              />
+            ))}
+          </div>
+        ) : (
+          <p className="text-sm text-muted-foreground">Bu modele ait kayıtlı fiziksel yazıcı yok.</p>
+        )}
       </div>
 
       {/* Current cartridges list */}

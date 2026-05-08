@@ -25,6 +25,7 @@ export async function getDashboardData(startDate?: Date, endDate?: Date) {
       include: {
         department: { select: { name: true } },
         cartridge: { select: { name: true } },
+        printer: { select: { serialNumber: true, inventoryNumber: true } },
       },
     }),
     prisma.cartridge.count(),
@@ -116,6 +117,8 @@ export async function getDashboardData(startDate?: Date, endDate?: Date) {
       id: s.id,
       title: `${s.department.name} - ${s.cartridge.name}`,
       meta: `${s.quantity} adet • ${format(s.issueDate, 'dd MMM HH:mm')}`,
+      printerId: s.printer ? s.printer.id : null,
+      printerLabel: s.printer ? (s.printer.serialNumber || s.printer.inventoryNumber) : null,
     })),
     monthlyStockIn,
     monthlyStockOut,

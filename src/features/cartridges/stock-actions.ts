@@ -56,6 +56,7 @@ export async function addStockOut(formData: FormData) {
 
   const quantity = Number(formData.get('quantity'))
   const departmentId = formData.get('departmentId')?.toString()
+  const printerId = formData.get('printerId')?.toString() || null
   const receiverName = formData.get('receiverName')?.toString()?.trim() || null
   const notes = formData.get('notes')?.toString()?.trim() || null
   const issueDateRaw = formData.get('issueDate')?.toString()
@@ -77,6 +78,7 @@ export async function addStockOut(formData: FormData) {
       receiverName,
       notes,
       issueDate: new Date(issueDateRaw),
+      ...(printerId ? { printerId } : {}),
     }
   })
   await recalculateStock(cartridgeId)

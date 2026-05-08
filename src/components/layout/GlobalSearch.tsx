@@ -44,7 +44,12 @@ export function GlobalSearch() {
     return () => clearTimeout(timer)
   }, [query])
 
-  const hasResults = results && (results.printers.length > 0 || results.cartridges.length > 0 || results.departments.length > 0)
+  const hasResults = results && (
+    results.printerModels.length > 0 ||
+    results.physicalPrinters.length > 0 ||
+    results.cartridges.length > 0 ||
+    results.departments.length > 0
+  )
 
   return (
     <div className="relative w-full max-w-md" ref={containerRef}>
@@ -71,7 +76,7 @@ export function GlobalSearch() {
       </div>
 
       {isOpen && (query.length >= 2) && (
-        <div className="absolute top-full mt-2 w-full overflow-hidden rounded-2xl border border-border bg-card shadow-2xl z-50">
+        <div className="absolute top-full mt-2 w-full overflow-hidden rounded-2xl border border-border bg-card shadow-[var(--surface-shadow)] z-50">
           <div className="max-h-[400px] overflow-y-auto p-2 scrollbar-thin">
             {isSearching ? (
               <div className="flex items-center justify-center py-8 text-muted-foreground">
@@ -84,11 +89,33 @@ export function GlobalSearch() {
               </div>
             ) : (
               <div className="space-y-4 p-2">
-                {results.printers.length > 0 && (
+                {results.physicalPrinters.length > 0 && (
                   <section>
-                    <h3 className="mb-2 px-2 text-[10px] font-bold uppercase tracking-widest text-muted-foreground">Yazıcılar</h3>
+                    <h3 className="mb-2 px-2 text-[10px] font-bold uppercase tracking-widest text-muted-foreground">Fizikî Yazıcılar</h3>
                     <div className="space-y-1">
-                      {results.printers.map((p: any) => (
+                      {results.physicalPrinters.map((p: any) => (
+                        <Link 
+                          key={p.id} 
+                          href={p.href}
+                          onClick={() => setIsOpen(false)}
+                          className="flex items-center gap-3 rounded-xl px-3 py-2 text-sm hover:bg-muted transition-colors"
+                        >
+                          <PrinterIcon className="h-4 w-4 text-violet-500" />
+                          <div className="min-w-0 flex-1">
+                            <span className="block font-medium truncate">{p.title}</span>
+                            {p.meta && <span className="block text-[10px] text-muted-foreground truncate">{p.meta}</span>}
+                          </div>
+                        </Link>
+                      ))}
+                    </div>
+                  </section>
+                )}
+
+                {results.printerModels.length > 0 && (
+                  <section>
+                    <h3 className="mb-2 px-2 text-[10px] font-bold uppercase tracking-widest text-muted-foreground">Yazıcı Modelleri</h3>
+                    <div className="space-y-1">
+                      {results.printerModels.map((p: any) => (
                         <Link 
                           key={p.id} 
                           href={p.href}
