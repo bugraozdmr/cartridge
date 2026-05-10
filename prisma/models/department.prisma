@@ -5,4 +5,7 @@ model Department {
   stockOuts   StockOut[] 
 
   printers  Printer[]
+
+  movementsOut    PrinterMovement[] @relation("FromDepartment")
+  movementsIn     PrinterMovement[] @relation("ToDepartment")
 }

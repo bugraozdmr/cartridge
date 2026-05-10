@@ -89,28 +89,68 @@ export async function getPrintersByModelId(printerModelId: string) {
 }
 
 export async function createPrinter(printerModelId: string, data: { serialNumber?: string; inventoryNumber?: string; assignedTo?: string; ipAddress?: string; notes?: string; departmentId: string }) {
-  return prisma.printer.create({ data: {
-    serialNumber: data.serialNumber || undefined,
-    inventoryNumber: data.inventoryNumber || undefined,
-    assignedTo: data.assignedTo || undefined,
-    ipAddress: data.ipAddress || undefined,
-    notes: data.notes || undefined,
-    printerModelId,
-    departmentId: data.departmentId,
-  } })
+  return prisma.$transaction(async (tx) => {
+    const printer = await tx.printer.create({
+      data: {
+        serialNumber: data.serialNumber || undefined,
+        inventoryNumber: data.inventoryNumber || undefined,
+        assignedTo: data.assignedTo || undefined,
+        ipAddress: data.ipAddress || undefined,
+        notes: data.notes || undefined,
+        printerModelId,
+        departmentId: data.departmentId,
+      }
+    })
+
+    // Create initial movement record
+    await tx.printerMovement.create({
+      data: {
+        printerId: printer.id,
+        toDepartmentId: data.departmentId,
+        assignedTo: data.assignedTo || null,
+        notes: 'Cihaz sisteme eklendi ve ilk departman ataması yapıldı.'
+      }
+    })
+
+    return printer
+  })
 }
 
-export async function updatePrinterInstance(id: string, data: { serialNumber?: string; inventoryNumber?: string; assignedTo?: string; ipAddress?: string; notes?: string; departmentId: string }) {
-  return prisma.printer.update({
-    where: { id },
-    data: {
-      serialNumber: data.serialNumber || null,
-      inventoryNumber: data.inventoryNumber || null,
-      assignedTo: data.assignedTo || null,
-      ipAddress: data.ipAddress || null,
-      notes: data.notes || null,
-      departmentId: data.departmentId,
+export async function updatePrinterInstance(id: string, data: { serialNumber?: string; inventoryNumber?: string; assignedTo?: string; ipAddress?: string; notes?: string; departmentId: string; movementNotes?: string }) {
+  return prisma.$transaction(async (tx) => {
+    // 1. Get current state to compare
+    const current = await tx.printer.findUnique({
+      where: { id },
+      select: { departmentId: true, assignedTo: true }
+    })
+
+    // 2. Update the printer
+    const updated = await tx.printer.update({
+      where: { id },
+      data: {
+        serialNumber: data.serialNumber || null,
+        inventoryNumber: data.inventoryNumber || null,
+        assignedTo: data.assignedTo || null,
+        ipAddress: data.ipAddress || null,
+        notes: data.notes || null,
+        departmentId: data.departmentId,
+      }
+    })
+
+    // 3. If department or assignment changed, create movement record
+    if (current && (current.departmentId !== data.departmentId || current.assignedTo !== data.assignedTo)) {
+      await tx.printerMovement.create({
+        data: {
+          printerId: id,
+          fromDepartmentId: current.departmentId,
+          toDepartmentId: data.departmentId,
+          assignedTo: data.assignedTo || null,
+          notes: data.movementNotes || data.notes || 'Departman veya sorumlu değişikliği'
+        }
+      })
     }
+
+    return updated
   })
 }
 

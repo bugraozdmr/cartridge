@@ -53,6 +53,7 @@ export async function updatePhysicalPrinter(formData: FormData) {
   const assignedTo = formData.get('assignedTo')?.toString()?.trim() || undefined
   const ipAddress = formData.get('ipAddress')?.toString()?.trim() || undefined
   const notes = formData.get('notes')?.toString()?.trim() || undefined
+  const movementNotes = formData.get('movementNotes')?.toString()?.trim() || undefined
   const departmentId = formData.get('departmentId')?.toString()
   if (!departmentId) throw new Error('Departman seçimi zorunludur.')
 
@@ -62,6 +63,7 @@ export async function updatePhysicalPrinter(formData: FormData) {
     assignedTo,
     ipAddress,
     notes,
+    movementNotes,
     departmentId
   })
 

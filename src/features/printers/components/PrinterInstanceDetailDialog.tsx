@@ -96,8 +96,16 @@ export function PrinterInstanceDetailDialog({ printerModelId, printerName, print
                 { name: 'inventoryNumber', label: 'Envanter Numarası', placeholder: 'Opsiyonel', required: false },
                 { name: 'assignedTo', label: 'Atanan Kişi / Yer', placeholder: 'Opsiyonel', required: false },
                 { name: 'ipAddress', label: 'IP Adresi', placeholder: 'Opsiyonel', required: false },
-                { name: 'notes', label: 'Notlar', placeholder: 'Opsiyonel', type: 'textarea', required: false },
-                { name: 'departmentId', label: 'Departman', type: 'select', required: true, options: departments }
+                { name: 'notes', label: 'Genel Notlar', placeholder: 'Yazıcıya ait genel notlar...', type: 'textarea', required: false },
+                { name: 'departmentId', label: 'Departman', type: 'select', required: true, options: departments },
+                {
+                  name: 'movementNotes',
+                  label: '📍 Taşıma Notu (Geçmişe Kaydedilir)',
+                  placeholder: 'Bu taşıma işlemi için not ekleyin... (Örn: Birim değişikliği, Personel değişimi vb.)',
+                  type: 'textarea',
+                  required: false,
+                  condition: (vals) => vals.departmentId !== printer.departmentId
+                }
               ]}
             />
 
@@ -151,15 +159,15 @@ export function PrinterInstanceDetailDialog({ printerModelId, printerName, print
             <div>Güncellenme: <span className="text-foreground">{formattedUpdatedAt}</span></div>
           </div>*/}
 
-            {/* Link to full detail page */}
-            <div className="mt-6 pt-6 border-t border-border">
-              <Link href={`/printers/instances/${printer.id}`}>
-                <button className="inline-flex items-center gap-2 rounded-xl bg-gradient-to-r from-violet-500/10 to-fuchsia-500/10 px-4 py-2.5 text-sm font-medium text-violet-600 hover:from-violet-500/15 hover:to-fuchsia-500/15 transition-colors dark:text-violet-400">
-                  Kartuş Geçmişini Gözat
-                  <ArrowRightIcon className="h-3.5 w-3.5" />
-                </button>
-              </Link>
-            </div>
+          {/* Link to full detail page */}
+          <div className="mt-6 pt-6 border-t border-border">
+            <Link href={`/printers/instances/${printer.id}`}>
+              <button className="inline-flex items-center gap-2 rounded-xl bg-gradient-to-r from-violet-500/10 to-fuchsia-500/10 px-4 py-2.5 text-sm font-medium text-violet-600 hover:from-violet-500/15 hover:to-fuchsia-500/15 transition-colors dark:text-violet-400">
+                Detay
+                <ArrowRightIcon className="h-3.5 w-3.5" />
+              </button>
+            </Link>
+          </div>
         </div>
       </DialogContent>
     </Dialog>

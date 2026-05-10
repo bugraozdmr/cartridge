@@ -5,7 +5,7 @@ import Link from 'next/link'
 import Image from 'next/image'
 import {
   ArrowLeftIcon, PrinterIcon, BoxIcon, CalendarIcon, UserIcon,
-  NetworkIcon, ClipboardIcon, ReceiptIcon
+  NetworkIcon, ClipboardIcon, ReceiptIcon, ArrowLeftRightIcon, HistoryIcon, MapPinIcon
 } from 'lucide-react'
 import { LocalPagination } from '@/components/ui/local-pagination'
 
@@ -43,6 +43,14 @@ interface PrinterInstance {
       id: string
       name: string
     }
+  }[]
+  movements: {
+    id: string
+    movedAt: Date
+    fromDepartment: { id: string; name: string } | null
+    toDepartment: { id: string; name: string }
+    assignedTo: string | null
+    notes: string | null
   }[]
 }
 
@@ -195,6 +203,80 @@ export function PrinterInstanceDetailClient({ printer }: ClientProps) {
           </div>
           <p className="text-2xl font-bold text-foreground">{printer.stockOuts.length}</p>
         </div>
+      </div>
+
+      {/* ── MOVEMENT HISTORY ───────────────────────────────────────── */}
+      <div className="rounded-2xl border border-border bg-card p-6 space-y-5">
+        <div className="flex items-center gap-3">
+          <div className="flex h-9 w-9 items-center justify-center rounded-xl bg-blue-400/20">
+            <ArrowLeftRightIcon className="h-4 w-4 text-blue-500" />
+          </div>
+          <div>
+            <h2 className="text-base font-semibold text-foreground">Yazıcı Hareket Geçmişi</h2>
+            <p className="text-xs text-muted-foreground">Departman ve yer değişiklikleri</p>
+          </div>
+        </div>
+
+        {printer.movements.length > 0 ? (
+          <div className="overflow-x-auto -mx-6 px-6">
+            <table className="w-full min-w-[600px] text-sm">
+              <thead>
+                <tr className="border-b border-border text-xs text-muted-foreground uppercase tracking-wider">
+                  <th className="pb-3 text-left">Tarih</th>
+                  <th className="pb-3 text-left">Nereden</th>
+                  <th className="pb-3 text-left">Nereye</th>
+                  <th className="pb-3 text-left">Atanan Kişi / Yer</th>
+                  <th className="pb-3 text-left">Notlar</th>
+                </tr>
+              </thead>
+              <tbody className="divide-y divide-border">
+                {printer.movements.map(m => (
+                  <tr key={m.id} className="hover:bg-muted/30 transition-colors">
+                    <td className="py-3.5 font-medium text-foreground">
+                      {new Date(m.movedAt).toLocaleDateString('tr-TR', { day: 'numeric', month: 'short', year: 'numeric', hour: '2-digit', minute: '2-digit' })}
+                    </td>
+                    <td className="py-3.5 px-2">
+                      {m.fromDepartment ? (
+                        <Link href={`/departments/${m.fromDepartment.id}`}>
+                          <span className="text-muted-foreground hover:text-blue-500 transition-colors">
+                            {m.fromDepartment.name}
+                          </span>
+                        </Link>
+                      ) : (
+                        <span className="text-xs italic text-muted-foreground/60">İlk Kayıt</span>
+                      )}
+                    </td>
+                    <td className="py-3.5 px-2">
+                      <Link href={`/departments/${m.toDepartment.id}`}>
+                        <span className="font-medium text-foreground hover:text-blue-500 transition-colors">
+                          {m.toDepartment.name}
+                        </span>
+                      </Link>
+                    </td>
+                    <td className="py-3.5 px-2">
+                      {m.assignedTo ? (
+                        <div className="flex items-center gap-1.5 text-foreground">
+                          <UserIcon className="h-3 w-3 text-muted-foreground" />
+                          {m.assignedTo}
+                        </div>
+                      ) : (
+                        <span className="text-muted-foreground/40">-</span>
+                      )}
+                    </td>
+                    <td className="py-3.5 px-2 text-muted-foreground max-w-[200px] truncate">
+                      {m.notes || '-'}
+                    </td>
+                  </tr>
+                ))}
+              </tbody>
+            </table>
+          </div>
+        ) : (
+          <div className="flex flex-col items-center justify-center rounded-xl border border-dashed border-border py-8">
+            <HistoryIcon className="h-8 w-8 text-muted-foreground/30 mb-2" />
+            <p className="text-sm text-muted-foreground">Henüz hareket kaydı bulunmuyor.</p>
+          </div>
+        )}
       </div>
 
       {/* ── STOCK OUT HISTORY ───────────────────────────────────────── */}

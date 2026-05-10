@@ -28,6 +28,7 @@ type AddEntityDialogProps = {
     value?: string
     step?: string
     required?: boolean
+    condition?: (values: Record<string, string>) => boolean
   }>
 }
 
@@ -51,14 +52,12 @@ function AddEntityDialogInner({ title, description, triggerLabel, triggerIcon, t
       setSelectValues(() => {
         const nextValues: Record<string, string> = {}
         for (const field of fields) {
-          if (field.type === 'select') {
-            nextValues[field.name] = (defaultValues?.[field.name] ?? field.value ?? '').toString()
-          }
+          nextValues[field.name] = (defaultValues?.[field.name] ?? field.value ?? '').toString()
         }
         return nextValues
       })
     }
-  }, [open, defaultValues])
+  }, [open, defaultValues, fields])
 
   const handleSubmit = async (e: React.FormEvent<HTMLFormElement>) => {
     e.preventDefault()
@@ -131,7 +130,7 @@ function AddEntityDialogInner({ title, description, triggerLabel, triggerIcon, t
           className="mt-6 space-y-4"
         >
           <fieldset disabled={isPending} className="space-y-4 group">
-            {fields.map((field) => (
+            {fields.filter(f => !f.condition || f.condition(selectValues)).map((field) => (
               <label key={field.name} className="block space-y-2 relative">
                 {field.type !== 'hidden' && (
                   <span className="text-sm font-medium text-foreground/90">{field.label}</span>
@@ -205,7 +204,8 @@ function AddEntityDialogInner({ title, description, triggerLabel, triggerIcon, t
                     name={field.name}
                     placeholder={field.placeholder}
                     required={field.required ?? false}
-                    defaultValue={defaultValues?.[field.name]}
+                    value={selectValues[field.name] || ''}
+                    onChange={(e) => setSelectValues(prev => ({ ...prev, [field.name]: e.target.value }))}
                     className="w-full min-h-[80px] rounded-2xl border border-border bg-muted/40 px-4 py-2 text-sm text-foreground outline-none transition placeholder:text-muted-foreground focus:border-primary/60 focus:bg-background focus:ring-2 focus:ring-primary/20 disabled:opacity-50 disabled:cursor-not-allowed"
                   />
                 ) : field.type === 'hidden' ? (
@@ -217,7 +217,8 @@ function AddEntityDialogInner({ title, description, triggerLabel, triggerIcon, t
                     step={field.step}
                     placeholder={field.placeholder}
                     required={field.required ?? true}
-                    defaultValue={defaultValues?.[field.name]}
+                    value={selectValues[field.name] || ''}
+                    onChange={(e) => setSelectValues(prev => ({ ...prev, [field.name]: e.target.value }))}
                     className="h-11 w-full rounded-2xl border border-border bg-muted/40 px-4 text-sm text-foreground outline-none transition placeholder:text-muted-foreground focus:border-primary/60 focus:bg-background focus:ring-2 focus:ring-primary/20 disabled:opacity-50 disabled:cursor-not-allowed"
                   />
                 )}

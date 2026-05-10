@@ -12,6 +12,13 @@ export async function getInstanceById(id: string) {
           department: { select: { id: true, name: true } }
         },
         orderBy: { issueDate: 'desc' }
+      },
+      movements: {
+        include: {
+          fromDepartment: { select: { id: true, name: true } },
+          toDepartment: { select: { id: true, name: true } }
+        },
+        orderBy: { movedAt: 'desc' }
       }
     }
   })
@@ -52,6 +59,20 @@ export async function getInstanceById(id: string) {
         id: so.department.id,
         name: so.department.name
       }
+    })),
+    movements: printer.movements.map(m => ({
+      id: m.id,
+      movedAt: m.movedAt,
+      fromDepartment: m.fromDepartment ? {
+        id: m.fromDepartment.id,
+        name: m.fromDepartment.name
+      } : null,
+      toDepartment: {
+        id: m.toDepartment.id,
+        name: m.toDepartment.name
+      },
+      assignedTo: m.assignedTo || null,
+      notes: m.notes || null
     }))
   }
 }

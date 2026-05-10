@@ -16,6 +16,8 @@ model Printer {
   departmentId    String
   department      Department    @relation(fields: [departmentId], references: [id], onDelete: Restrict)
 
+  movements       PrinterMovement[]
+
   stockOuts       StockOut[]
 
   createdAt       DateTime      @default(now())

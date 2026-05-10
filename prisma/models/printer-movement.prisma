@@ -1,0 +1,18 @@
+model PrinterMovement {
+  id               String      @id @default(cuid())
+  
+  printerId        String
+  printer          Printer     @relation(fields: [printerId], references: [id], onDelete: Cascade)
+  
+  fromDepartmentId String?
+  fromDepartment   Department? @relation("FromDepartment", fields: [fromDepartmentId], references: [id], onDelete: SetNull)
+  
+  toDepartmentId   String
+  toDepartment     Department  @relation("ToDepartment", fields: [toDepartmentId], references: [id], onDelete: Restrict)
+  
+  assignedTo       String?     
+  
+  notes            String?     @db.Text
+  
+  movedAt          DateTime    @default(now())
+}
