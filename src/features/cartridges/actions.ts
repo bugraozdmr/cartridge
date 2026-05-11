@@ -23,7 +23,7 @@ export async function addCartridge(formData: FormData) {
     revalidatePath('/')
   } catch (error: any) {
     if (error.code === 'P2002') {
-      throw new Error('Bu isimde bir kartuş zaten mevcut.')
+      throw new Error('Bu isimde bir toner zaten mevcut.')
     }
     throw error
   }
@@ -67,7 +67,7 @@ export async function updateCartridge(formData: FormData) {
   } catch (error: any) {
     console.error('Cartridge action error:', error)
     if (error.code === 'P2002') {
-      throw new Error('Bu isimde bir kartuş zaten mevcut.')
+      throw new Error('Bu isimde bir toner zaten mevcut.')
     }
     throw new Error(error.message || 'Bir hata oluştu.')
   }

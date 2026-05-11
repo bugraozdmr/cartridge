@@ -30,6 +30,33 @@ import { getAll as getAllDepartments } from "@/features/departments/repo"
 
 const PAGE_SIZE = 10
 
+type CompactDepartment = { id: string; name: string }
+type SpendByCartridgeItem = { id: string; name: string; total: number }
+type ConsumptionByDeptItem = { id: string; name: string; quantity: number; totalValue: number }
+type StockEntryRow = {
+  id: string
+  date: Date
+  name: string
+  imageUrl: string | null
+  quantity: number
+  unitPrice: number
+  total: number
+}
+
+type StockOutRow = {
+  id: string
+  date: Date
+  cartridgeName: string
+  cartridgeId: string
+  departmentName: string
+  departmentId: string
+  quantity: number
+  printerId: string | null
+  printerLabel: string | null
+  currentUnitPrice: number
+  totalValue: number
+}
+
 export default async function ReportsPage({
   searchParams
 }: {
@@ -42,15 +69,19 @@ export default async function ReportsPage({
   const pageOut = Number(params.pageOut) || 1
 
   const fullData = await getReportsData({ start: startDate, end: endDate })
-  const departments = await getAllDepartments()
+  const departments = (await getAllDepartments()) as CompactDepartment[]
+  const spendByCartridge = fullData.analytics.spendByCartridge as SpendByCartridgeItem[]
+  const consumptionByDept = fullData.analytics.consumptionByDept as ConsumptionByDeptItem[]
+  const stockEntries = fullData.stockEntries as StockEntryRow[]
+  const stockOuts = fullData.stockOuts as StockOutRow[]
 
   // Paginate Entries
-  const totalInPages = Math.ceil(fullData.stockEntries.length / PAGE_SIZE)
-  const paginatedEntries = fullData.stockEntries.slice((pageIn - 1) * PAGE_SIZE, pageIn * PAGE_SIZE)
+  const totalInPages = Math.ceil(stockEntries.length / PAGE_SIZE)
+  const paginatedEntries = stockEntries.slice((pageIn - 1) * PAGE_SIZE, pageIn * PAGE_SIZE)
 
   // Paginate Outs
-  const totalOutPages = Math.ceil(fullData.stockOuts.length / PAGE_SIZE)
-  const paginatedOuts = fullData.stockOuts.slice((pageOut - 1) * PAGE_SIZE, pageOut * PAGE_SIZE)
+  const totalOutPages = Math.ceil(stockOuts.length / PAGE_SIZE)
+  const paginatedOuts = stockOuts.slice((pageOut - 1) * PAGE_SIZE, pageOut * PAGE_SIZE)
 
   const summaryCards = [
     {
@@ -79,7 +110,7 @@ export default async function ReportsPage({
     },
     {
       label: "İşlem Sayısı",
-      value: `${fullData.stockEntries.length + fullData.stockOuts.length}`,
+      value: `${stockEntries.length + stockOuts.length}`,
       icon: FileTextIcon,
       color: "text-amber-500",
       bg: "bg-amber-500/10",
@@ -130,8 +161,8 @@ export default async function ReportsPage({
 
       {/* Charts */}
       <ReportCharts
-        spendByCartridge={fullData.analytics.spendByCartridge}
-        consumptionByDept={fullData.analytics.consumptionByDept}
+        spendByCartridge={spendByCartridge}
+        consumptionByDept={consumptionByDept}
       />
 
       {/* Tables Section */}
@@ -212,7 +243,7 @@ export default async function ReportsPage({
                       </tr>
                     )}
                   </tbody>
-                  {fullData.stockEntries.length > 0 && (
+                  {stockEntries.length > 0 && (
                     <tfoot className="bg-muted/10 border-t-2 border-border/50 font-medium">
                       <tr>
                         <td colSpan={2} className="px-4 py-5 font-bold text-foreground sm:px-8 italic text-xs uppercase tracking-widest">Seçili Aralık Toplamı</td>
@@ -308,7 +339,7 @@ export default async function ReportsPage({
                       </tr>
                     )}
                   </tbody>
-                  {fullData.stockOuts.length > 0 && (
+                  {stockOuts.length > 0 && (
                     <tfoot className="bg-muted/10 border-t-2 border-border/50">
                       <tr>
                         <td colSpan={2} className="px-4 py-5 font-bold text-foreground sm:px-8 italic text-xs uppercase tracking-widest">Seçili Aralık Toplamı</td>

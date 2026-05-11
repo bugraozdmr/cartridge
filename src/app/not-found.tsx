@@ -38,7 +38,7 @@ export default function NotFound() {
           className="inline-flex items-center gap-2 rounded-xl border border-border bg-muted/60 px-5 py-2.5 text-sm font-medium text-foreground hover:bg-muted transition-colors"
         >
           <BoxIcon className="h-4 w-4" />
-          Kartuşlar
+          Tonerler
         </Link>
       </div>
 

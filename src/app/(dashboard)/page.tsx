@@ -9,6 +9,11 @@ import { cn } from "@/lib/utils";
 import { getDashboardData } from "@/features/dashboard/repo";
 import { DashboardCharts } from "@/features/dashboard/components/DashboardCharts";
 import { startOfMonth, endOfMonth, subMonths, parseISO } from 'date-fns';
+
+type LowStockCartridge = { id: string; name: string; stock: number; imageUrl: string | null }
+type RecentActivity = { title: string; meta: string; printerId?: string | null; printerLabel?: string | null }
+type DistributionItem = { name: string; total: number; percent: number }
+
 export const metadata = {
     title: 'Genel Bakış',
 }
@@ -23,6 +28,9 @@ export default async function DashboardPage({
     const endDate = params.end ? parseISO(params.end) : endOfMonth(new Date());
 
     const data = await getDashboardData(startDate, endDate);
+    const lowStockCartridges = data.lowStockCartridges as LowStockCartridge[]
+    const recentActivities = data.recentActivities as RecentActivity[]
+    const distribution = data.distribution as DistributionItem[]
 
     const metrics = [
         {
@@ -33,7 +41,7 @@ export default async function DashboardPage({
             icon: PrinterIcon,
         },
         {
-            label: "Toplam Kartuş",
+            label: "Toplam Toner Modeli",
             value: data.metrics.totalCartridges.toString(),
             delta: "Farklı model sayısı",
             tone: "text-violet-400",
@@ -113,12 +121,12 @@ export default async function DashboardPage({
                                     <Badge variant="danger" className="animate-pulse">Acil</Badge>
                                 )}
                             </div>
-                            <CardDescription>Kritik seviyedeki kartuşlar.</CardDescription>
+                            <CardDescription>Kritik seviyedeki tonerler.</CardDescription>
                         </div>
                         <AlertTriangleIcon className="h-5 w-5 text-rose-500" />
                     </CardHeader>
                     <CardContent className="space-y-4 max-h-[350px] overflow-y-auto pr-2 scrollbar-thin scrollbar-thumb-border">
-                        {data.lowStockCartridges.length > 0 ? data.lowStockCartridges.map((cart, i) => (
+                        {lowStockCartridges.length > 0 ? lowStockCartridges.map((cart, i) => (
                             <div key={cart.id} className="flex items-center justify-between gap-4 p-3 rounded-2xl bg-rose-500/5 border border-rose-500/10 hover:bg-rose-500/10 transition-colors">
                                 <div className="flex items-center gap-3 min-w-0">
                                     <div className="relative h-10 w-10 shrink-0 overflow-hidden rounded-xl border border-border bg-background">
@@ -164,7 +172,7 @@ export default async function DashboardPage({
                     </CardHeader>
                     <CardContent className="max-h-[300px] overflow-y-auto pr-2 sm:max-h-none sm:pr-6">
                         <div className="space-y-1">
-                            {data.recentActivities.length > 0 ? data.recentActivities.map((act, i) => (
+                            {recentActivities.length > 0 ? recentActivities.map((act, i) => (
                                 <div key={i} className="group relative flex items-center gap-3 rounded-2xl p-2.5 sm:gap-4 sm:p-3 hover:bg-muted/40 transition-colors">
                                     <div className="flex h-9 w-9 shrink-0 items-center justify-center rounded-xl bg-muted border border-border group-hover:border-primary/30 transition-colors sm:h-10 sm:w-10">
                                         <TrendingUpIcon className="h-3.5 w-3.5 text-primary sm:h-4 sm:w-4" />
@@ -196,7 +204,7 @@ export default async function DashboardPage({
                         <CardDescription>Seçili aralıktaki kullanım miktarı.</CardDescription>
                     </CardHeader>
                     <CardContent className="space-y-5">
-                        {data.distribution.length > 0 ? data.distribution.map((dept, i) => (
+                        {distribution.length > 0 ? distribution.map((dept, i) => (
                             <div key={i} className="space-y-2">
                                 <div className="flex items-center justify-between text-xs font-medium">
                                     <span className="text-muted-foreground truncate">{dept.name}</span>

@@ -17,6 +17,7 @@ import {
   PanelTopIcon,
   PrinterIcon,
   SearchIcon,
+  StarIcon,
   SunIcon,
 } from "lucide-react";
 
@@ -26,6 +27,7 @@ import { cn } from "@/lib/utils";
 import { GlobalSearch } from "./GlobalSearch";
 import { LogOutIcon } from "lucide-react";
 import { logout } from "@/app/login/actions";
+import { QuickStockOutForm } from "./QuickStockOutForm";
 
 type NavigationItem = {
   label: string;
@@ -37,12 +39,17 @@ type NavigationItem = {
 const navigation: NavigationItem[] = [
   { label: "Genel Bakış", href: "/", icon: PanelTopIcon, accent: "from-cyan-400/40 to-sky-400/20" },
   { label: "Yazıcılar", href: "/printers", icon: PrinterIcon, accent: "from-violet-400/40 to-fuchsia-400/20" },
-  { label: "Kartuşlar", href: "/cartridges", icon: BoxIcon, accent: "from-emerald-400/40 to-teal-400/20" },
+  { label: "Tonerler", href: "/cartridges", icon: BoxIcon, accent: "from-emerald-400/40 to-teal-400/20" },
   { label: "Departmanlar", href: "/departments", icon: BuildingIcon, accent: "from-sky-400/40 to-blue-400/20" },
   { label: "Raporlar", href: "/reports", icon: BarChart3Icon, accent: "from-rose-400/40 to-pink-400/20" },
 ];
 
-export function AdminShell({ children }: { children: ReactNode }) {
+interface AdminShellProps {
+  children: ReactNode;
+  departments: { id: string; name: string }[];
+}
+
+export function AdminShell({ children, departments }: AdminShellProps) {
   const [collapsed, setCollapsed] = useState(false);
   const [mobileOpen, setMobileOpen] = useState(false);
   const [mounted, setMounted] = useState(false);
@@ -65,6 +72,7 @@ export function AdminShell({ children }: { children: ReactNode }) {
   const toggleTheme = () => {
     setTheme(isDark ? "light" : "dark");
   };
+  const [quickOpen, setQuickOpen] = useState(false);
 
   return (
     <div className="min-h-screen bg-background text-foreground">
@@ -199,8 +207,8 @@ export function AdminShell({ children }: { children: ReactNode }) {
               <GlobalSearch />
             </div>
 
-            {/* Theme toggle */}
-            <div className="ml-auto">
+            {/* Theme toggle + quick-exit */}
+            <div className="ml-auto flex items-center gap-2">
               <Button
                 variant="ghost"
                 size="icon"
@@ -209,6 +217,30 @@ export function AdminShell({ children }: { children: ReactNode }) {
                 aria-label="Temayı değiştir"
               >
                 {themeIcon}
+              </Button>
+
+              <Button
+                variant="ghost"
+                size="icon"
+                className="h-9 w-9 rounded-xl border border-border bg-muted/60 text-foreground hover:bg-muted"
+                onClick={() => {
+                  // If user is on a cartridge detail page, open the page's stock-out modal
+                  if (pathname && pathname.startsWith('/cartridges/')) {
+                    const parts = pathname.split('/').filter(Boolean)
+                    const id = parts[1]
+                    try {
+                      window.dispatchEvent(new CustomEvent('open-stock-out', { detail: { cartridgeId: id } }))
+                    } catch (e) {
+                      setQuickOpen(true)
+                    }
+                    return
+                  }
+                  setQuickOpen(true)
+                }}
+                title="Hızlı çıkış"
+                aria-label="Hızlı çıkış"
+              >
+                <StarIcon className="h-4 w-4" />
               </Button>
             </div>
           </div>
@@ -226,6 +258,45 @@ export function AdminShell({ children }: { children: ReactNode }) {
           type="button"
         />
       )}
+
+      {/* Quick-exit sliding panel (right-to-left) */}
+      {/* overlay */}
+      {quickOpen && (
+        <button
+          aria-label="Kapat"
+          className="fixed inset-0 z-40 bg-black/40 backdrop-blur-sm"
+          onClick={() => setQuickOpen(false)}
+          type="button"
+        />
+      )}
+
+      <aside
+        aria-hidden={!quickOpen}
+        className={cn(
+          "fixed top-0 right-0 z-50 h-full w-[360px] max-w-full transform bg-card shadow-lg transition-transform duration-300",
+          quickOpen ? "translate-x-0" : "translate-x-full"
+        )}
+      >
+        <div className="flex h-full flex-col">
+          <div className="flex items-center justify-between border-b border-border px-4 py-3">
+            <h3 className="text-sm font-semibold">Toner Dağıtım</h3>
+            <button
+              aria-label="Kapat"
+              onClick={() => setQuickOpen(false)}
+              className="rounded-md p-2 text-muted-foreground hover:bg-muted"
+            >
+              ✕
+            </button>
+          </div>
+
+          <div className="p-4">
+            <h4 className="text-sm font-medium">Toner Çıkışı (Hızlı)</h4>
+            <p className="text-xs text-muted-foreground mt-1">Kartuş seçip hızlı stok çıkışı gerçekleştirin.</p>
+
+            {quickOpen && <QuickStockOutForm initialDepartments={departments} onDone={() => setQuickOpen(false)} />}
+          </div>
+        </div>
+      </aside>
     </div>
   );
 }

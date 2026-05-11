@@ -21,7 +21,8 @@ export default function LoginPage() {
       if (result.success) {
         window.location.href = '/'
       } else {
-        toast.error(result.error || 'Giriş başarısız.')
+        toast.error('Giriş başarısız.')
+        console.log(result.error);
         setIsPending(false)
       }
     } catch (error: any) {

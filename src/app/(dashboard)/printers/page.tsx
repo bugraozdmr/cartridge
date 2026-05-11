@@ -28,7 +28,7 @@ export default async function PrintersPage({
       <div className="space-y-3">
         <div>
           <h1 className="text-4xl font-black tracking-tight bg-gradient-to-br from-foreground to-foreground/50 bg-clip-text text-transparent">Yazıcılar</h1>
-          <p className="text-sm text-muted-foreground font-medium italic">Bütün yazıcıları yönet ve bağlı kartuşları görüntüle.</p>
+          <p className="text-sm text-muted-foreground font-medium italic">Bütün yazıcıları yönet ve bağlı tonerleri görüntüle.</p>
         </div>
 
         <div className="flex flex-col gap-3">

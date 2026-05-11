@@ -90,8 +90,10 @@ function AddEntityDialogInner({ title, description, triggerLabel, triggerIcon, t
       setSelectedFile(null)
       setOpen(false)
     } catch (error: any) {
-      console.error(error)
+      // console.error(error)
+      // toast.error(error?.message || 'Kaydedilirken bir hata oluştu.')
       toast.error(error?.message || 'Kaydedilirken bir hata oluştu.')
+      // console.error(error?.message )
     } finally {
       setIsPending(false)
     }

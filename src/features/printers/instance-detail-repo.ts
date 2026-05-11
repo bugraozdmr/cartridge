@@ -1,5 +1,24 @@
 import prisma from '@/lib/prisma'
 
+type StockOutRow = {
+  id: string
+  issueDate: Date
+  quantity: number
+  receiverName: string | null
+  notes: string | null
+  cartridge: { id: string; name: string; imageUrl: string | null; currentPrice: any }
+  department: { id: string; name: string }
+}
+
+type MovementRow = {
+  id: string
+  movedAt: Date
+  fromDepartment: { id: string; name: string } | null
+  toDepartment: { id: string; name: string }
+  assignedTo: string | null
+  notes: string | null
+}
+
 export async function getInstanceById(id: string) {
   const printer = await prisma.printer.findUnique({
     where: { id },
@@ -28,7 +47,6 @@ export async function getInstanceById(id: string) {
   return {
     id: printer.id,
     serialNumber: printer.serialNumber || null,
-    inventoryNumber: printer.inventoryNumber || null,
     assignedTo: printer.assignedTo || null,
     ipAddress: printer.ipAddress || null,
     notes: printer.notes || null,
@@ -43,7 +61,7 @@ export async function getInstanceById(id: string) {
       id: printer.department.id,
       name: printer.department.name
     } : null,
-    stockOuts: printer.stockOuts.map(so => ({
+    stockOuts: (printer.stockOuts as StockOutRow[]).map((so: StockOutRow) => ({
       id: so.id,
       issueDate: so.issueDate,
       quantity: so.quantity,
@@ -60,7 +78,7 @@ export async function getInstanceById(id: string) {
         name: so.department.name
       }
     })),
-    movements: printer.movements.map(m => ({
+    movements: (printer.movements as MovementRow[]).map((m: MovementRow) => ({
       id: m.id,
       movedAt: m.movedAt,
       fromDepartment: m.fromDepartment ? {

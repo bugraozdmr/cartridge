@@ -6,16 +6,23 @@ export const metadata = {
   title: 'Toplu Giriş',
 }
 
+type CompactCartridge = {
+  id: string
+  name: string
+  stock: number
+  currentPrice: { toString(): string } | null
+}
+
+type SerializedCartridge = Omit<CompactCartridge, 'currentPrice'> & {
+  currentPrice: string
+}
+
 export default async function BulkEntryPage() {
-  const cartridges = await getAllCompact()
-  
-  // Convert Decimals to numbers for the client component if needed, 
-  // but Prisma already returns Decimal objects which we can .toString() in the repo.
-  // The repo already does this in getAllCompact? Let's check.
-  
-  const serializedCartridges = cartridges.map(c => ({
+  const cartridges = (await getAllCompact()) as CompactCartridge[]
+
+  const serializedCartridges: SerializedCartridge[] = cartridges.map((c) => ({
     ...c,
-    currentPrice: c.currentPrice?.toString() || '0'
+    currentPrice: c.currentPrice?.toString() || '0',
   }))
 
   return (

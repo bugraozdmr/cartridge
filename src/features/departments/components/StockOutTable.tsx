@@ -15,7 +15,7 @@ interface StockOut {
   cartridge: { id: string; name: string; imageUrl: string | null }
   receiverName: string | null
   notes: string | null
-  printer?: { id: string; serialNumber?: string | null; inventoryNumber?: string | null } | null
+  printer?: { id: string; serialNumber?: string | null } | null
 }
 
 interface StockOutTableProps {
@@ -44,7 +44,7 @@ export function StockOutTable({ stockOuts, totalQuantity }: StockOutTableProps) 
                 <span className="flex items-center gap-1.5"><CalendarIcon className="h-3.5 w-3.5" />Tarih</span>
               </th>
               <th className="pb-3 px-4 text-left">
-                <span className="flex items-center gap-1.5"><BoxIcon className="h-3.5 w-3.5" />Kartuş</span>
+                <span className="flex items-center gap-1.5"><BoxIcon className="h-3.5 w-3.5" />Toner</span>
               </th>
               <th className="pb-3 px-4 text-right">
                 <span className="flex justify-end items-center gap-1.5"><HashIcon className="h-3.5 w-3.5" />Adet</span>
@@ -95,7 +95,7 @@ export function StockOutTable({ stockOuts, totalQuantity }: StockOutTableProps) 
                     <Link href={`/printers/instances/${out.printer.id}`} className="inline-flex items-center gap-2 hover:text-primary transition-colors">
                       <PrinterIcon className="h-4 w-4 text-muted-foreground" />
                       <span className="text-sm">
-                        {out.printer.serialNumber || out.printer.inventoryNumber || 'Yazıcı'}
+                        {out.printer.serialNumber || 'Yazıcı'}
                       </span>
                     </Link>
                   ) : (

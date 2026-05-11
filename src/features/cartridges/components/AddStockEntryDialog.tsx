@@ -35,7 +35,9 @@ export function AddStockEntryDialog({ cartridgeId, defaultUnitPrice }: AddStockE
         form.reset()
         setOpen(false)
       } catch (err: any) {
-        toast.error(err?.message || 'Bir hata oluştu.')
+        // toast.error(err?.message || 'Bir hata oluştu.')
+        toast.error('Bir hata oluştu.')
+        console.error(err?.message)
       }
     })
   }
@@ -101,7 +103,7 @@ export function AddStockEntryDialog({ cartridgeId, defaultUnitPrice }: AddStockE
               />
               {defaultUnitPrice && (
                 <p className="text-xs text-muted-foreground">
-                  Varsayılan: kartuşun birim fiyatı (₺{defaultUnitPrice})
+                  Varsayılan: tonerin birim fiyatı (₺{defaultUnitPrice})
                 </p>
               )}
             </label>

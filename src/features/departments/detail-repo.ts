@@ -1,5 +1,28 @@
 import prisma from '@/lib/prisma'
 
+type PrinterRow = {
+  id: string
+  serialNumber: string | null
+  assignedTo: string | null
+  ipAddress: string | null
+  notes: string | null
+  departmentId: string
+  printerModelId: string
+  printerModel: { id: string; name: string } | null
+  createdAt: Date
+  updatedAt: Date
+}
+
+type StockOutRow = {
+  id: string
+  issueDate: Date
+  quantity: number
+  receiverName: string | null
+  notes: string | null
+  cartridge: { id: string; name: string; imageUrl: string | null; currentPrice: any }
+  printer: { id: string; serialNumber: string | null } | null
+}
+
 export async function getDepartmentById(id: string) {
   const dept = await prisma.department.findUnique({
     where: { id },
@@ -9,7 +32,6 @@ export async function getDepartmentById(id: string) {
         select: {
           id: true,
           serialNumber: true,
-          inventoryNumber: true,
           assignedTo: true,
           ipAddress: true,
           notes: true,
@@ -26,7 +48,7 @@ export async function getDepartmentById(id: string) {
           cartridge: {
             select: { id: true, name: true, imageUrl: true, currentPrice: true }
           },
-          printer: { select: { id: true, serialNumber: true, inventoryNumber: true } }
+          printer: { select: { id: true, serialNumber: true } }
         }
       }
     }
@@ -36,10 +58,9 @@ export async function getDepartmentById(id: string) {
   return {
     id: dept.id,
     name: dept.name,
-    printers: dept.printers.map(p => ({
+    printers: (dept.printers as PrinterRow[]).map((p: PrinterRow) => ({
       id: p.id,
       serialNumber: p.serialNumber || null,
-      inventoryNumber: p.inventoryNumber || null,
       assignedTo: p.assignedTo || null,
       ipAddress: p.ipAddress || null,
       notes: p.notes || null,
@@ -49,7 +70,7 @@ export async function getDepartmentById(id: string) {
       createdAt: p.createdAt,
       updatedAt: p.updatedAt,
     })),
-    stockOuts: dept.stockOuts.map(o => ({
+    stockOuts: (dept.stockOuts as StockOutRow[]).map((o: StockOutRow) => ({
       id: o.id,
       issueDate: o.issueDate,
       quantity: o.quantity,
@@ -65,7 +86,6 @@ export async function getDepartmentById(id: string) {
       printer: o.printer ? {
         id: o.printer.id,
         serialNumber: o.printer.serialNumber || null,
-        inventoryNumber: o.printer.inventoryNumber || null,
       } : null
     }))
   }

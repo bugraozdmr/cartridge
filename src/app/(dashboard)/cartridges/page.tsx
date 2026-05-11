@@ -11,7 +11,7 @@ import { Button } from '@/components/ui/button'
 import Link from 'next/link'
 import { PlusIcon } from 'lucide-react'
 export const metadata = {
-  title: 'Kartuşlar',
+  title: 'Tonerler',
 }
 
 export default async function CartridgesPage({
@@ -30,13 +30,13 @@ export default async function CartridgesPage({
     <div className="space-y-6">
       <div className="space-y-3">
         <div>
-          <h1 className="text-4xl font-black tracking-tight bg-gradient-to-br from-foreground to-foreground/50 bg-clip-text text-transparent">Kartuşlar</h1>
+          <h1 className="text-4xl font-black tracking-tight bg-gradient-to-br from-foreground to-foreground/50 bg-clip-text text-transparent">Tonerler</h1>
           <p className="text-sm text-muted-foreground font-medium italic">Stok, fiyat ve giriş çıkış geçmişini yönetin.</p>
         </div>
 
         <div className="flex flex-col gap-3">
           <div className="flex items-center justify-between gap-3">
-            <SearchForm placeholder="Kartuş adına göre ara..." />
+            <SearchForm placeholder="Toner adına göre ara..." />
             <div className="flex items-center gap-2">
               <Link href="/cartridges/bulk-entry">
                 <Button variant="outline" className="h-11 rounded-xl border-border bg-card/60 gap-2 font-bold text-xs uppercase tracking-widest hover:bg-muted transition-all">
@@ -45,13 +45,13 @@ export default async function CartridgesPage({
                 </Button>
               </Link>
               <AddEntityDialog
-                title="Yeni Kartuş Ekle"
-                description="Sisteme yeni bir kartuş modeli ekleyin."
+                title="Yeni Toner Ekle"
+                description="Sisteme yeni bir toner modeli ekleyin."
                 triggerLabel="Yeni Ekle"
                 action={addCartridge}
                 fields={[
-                  { name: 'image', label: 'Kartuş Görseli', type: 'image', required: false },
-                  { name: 'name', label: 'Kartuş Adı', placeholder: 'Örn: HP 83A', required: true },
+                  { name: 'image', label: 'Toner Görseli', type: 'image', required: false },
+                  { name: 'name', label: 'Toner Adı', placeholder: 'Örn: HP 83A', required: true },
                   { name: 'stock', label: 'Stok Adedi', type: 'number', placeholder: '0', required: true },
                   { name: 'currentPrice', label: 'Birim Fiyatı (₺)', type: 'number', step: '0.01', placeholder: '0.00', required: false }
                 ]}
@@ -59,7 +59,7 @@ export default async function CartridgesPage({
             </div>
           </div>
           <p className="text-xs text-muted-foreground">
-            Toplam: <span className="font-semibold text-foreground">{metadata.total}</span> kartuş
+            Toplam: <span className="font-semibold text-foreground">{metadata.total}</span> toner
           </p>
         </div>
       </div>

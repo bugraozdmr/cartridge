@@ -2,16 +2,31 @@
 
 import { deletePrinter, updatePrinter } from '../actions'
 import Link from 'next/link'
+import { useRouter } from 'next/navigation'
 import { PrinterIcon, EyeIcon, Edit2Icon, Trash2Icon } from 'lucide-react'
 import { DeleteDialog } from '@/components/ui/delete-dialog'
 import { AddEntityDialog } from '@/components/ui/add-entity-dialog'
 import Image from 'next/image'
 
+type PrinterListItem = {
+  id: string
+  name: string
+  imageUrl: string | null
+  cartridges?: Array<{ id: string }> | null
+}
+
 interface PrinterListProps {
-  items: any[]
+  items: PrinterListItem[]
 }
 
 export default function PrinterList({ items }: PrinterListProps) {
+  const router = useRouter()
+
+  const shouldIgnoreCardNavigation = (target: EventTarget | null) => {
+    const el = target as HTMLElement | null
+    return Boolean(el?.closest('a,button,input,textarea,select,label'))
+  }
+
   if (items.length === 0) {
     return (
       <div className="flex flex-col items-center justify-center rounded-xl border border-dashed border-border bg-card/40 py-12">
@@ -26,7 +41,24 @@ export default function PrinterList({ items }: PrinterListProps) {
       <div className="min-w-[480px] space-y-3">
         <div className="grid gap-3">
         {items.map((printer) => (
-          <div key={printer.id} className="group relative rounded-lg border border-border bg-card/60 hover:bg-card/80 transition-colors p-4">
+          <div
+            key={printer.id}
+            role="link"
+            tabIndex={0}
+            aria-label={`${printer.name} detay`}
+            onClick={(e) => {
+              if (shouldIgnoreCardNavigation(e.target)) return
+              router.push(`/printers/${printer.id}`)
+            }}
+            onKeyDown={(e) => {
+              if (shouldIgnoreCardNavigation(e.target)) return
+              if (e.key === 'Enter' || e.key === ' ') {
+                e.preventDefault()
+                router.push(`/printers/${printer.id}`)
+              }
+            }}
+            className="group relative rounded-lg border border-border bg-card/60 hover:bg-card/80 transition-colors p-4 cursor-pointer"
+          >
             <div className="flex items-start gap-4">
               {printer.imageUrl ? (
                 <div className="relative h-10 w-10 shrink-0 overflow-hidden rounded-lg border border-border bg-muted">
@@ -41,7 +73,7 @@ export default function PrinterList({ items }: PrinterListProps) {
               <div className="min-w-0 flex-1">
                 <h3 className="text-sm font-semibold text-foreground truncate">{printer.name}</h3>
                 <p className="text-xs text-muted-foreground mt-1">
-                  {printer.cartridges?.length || 0} bağlı kartuş
+                  {printer.cartridges?.length || 0} bağlı toner
                 </p>
               </div>
 

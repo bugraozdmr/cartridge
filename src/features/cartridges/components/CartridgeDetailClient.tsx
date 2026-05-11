@@ -26,7 +26,7 @@ interface StockOut {
   quantity: number
   issueDate: Date
   department: { id: string; name: string }
-  printer: { id: string; serialNumber: string | null; inventoryNumber: string | null } | null
+  printer: { id: string; serialNumber: string | null } | null
   receiverName: string | null
   notes: string | null
 }
@@ -143,7 +143,7 @@ export function CartridgeDetailClient({ cartridge, departments }: CartridgeDetai
       {/* Back */}
       <Link href="/cartridges" className="inline-flex items-center gap-2 text-sm text-muted-foreground hover:text-foreground transition-colors">
         <ArrowDownLeftIcon className="h-4 w-4" style={{ transform: 'rotate(180deg)' }} />
-        Kartuşlara Dön
+        Tonerlere Dön
       </Link>
 
       {/* Header */}
@@ -231,7 +231,7 @@ export function CartridgeDetailClient({ cartridge, departments }: CartridgeDetai
             </div>
             <div>
               <h2 className="text-base font-semibold text-foreground">Stok Girişleri</h2>
-              <p className="text-xs text-muted-foreground">Satın alınan kartuşlar</p>
+              <p className="text-xs text-muted-foreground">Satın alınan tonerler</p>
             </div>
           </div>
           <AddStockEntryDialog cartridgeId={cartridge.id} defaultUnitPrice={cartridge.currentPrice} />
@@ -387,7 +387,7 @@ export function CartridgeDetailClient({ cartridge, departments }: CartridgeDetai
             </div>
             <div>
               <h2 className="text-base font-semibold text-foreground">Stok Çıkışları</h2>
-              <p className="text-xs text-muted-foreground">Departmanlara dağıtılan kartuşlar</p>
+              <p className="text-xs text-muted-foreground">Departmanlara dağıtılan tonerler</p>
             </div>
           </div>
           <AddStockOutDialog
@@ -487,7 +487,7 @@ export function CartridgeDetailClient({ cartridge, departments }: CartridgeDetai
                           <Link href={`/printers/${out.printer.id}`}>
                             <span className="inline-flex items-center gap-1.5 rounded-lg bg-violet-400/10 px-2.5 py-0.5 text-xs font-medium text-violet-600 dark:text-violet-400 whitespace-nowrap hover:bg-violet-400/20 transition-colors cursor-pointer">
                               <PrinterIcon className="h-3 w-3" />
-                              {out.printer.serialNumber || out.printer.inventoryNumber}
+                              {out.printer.serialNumber || 'Yazıcı'}
                             </span>
                           </Link>
                         ) : (
@@ -551,7 +551,7 @@ export function CartridgeDetailClient({ cartridge, departments }: CartridgeDetai
       <div className="rounded-2xl border border-border bg-card p-6 space-y-4">
         <div>
           <h2 className="text-lg font-semibold text-foreground">Uyumlu Yazıcılar</h2>
-          <p className="mt-0.5 text-sm text-muted-foreground">Bu kartuşla kullanılabilen yazıcı modelleri.</p>
+          <p className="mt-0.5 text-sm text-muted-foreground">Bu tonerle kullanılabilen yazıcı modelleri.</p>
         </div>
         {cartridge.printerModels.length > 0 ? (
           <div className="grid gap-3">
@@ -575,7 +575,7 @@ export function CartridgeDetailClient({ cartridge, departments }: CartridgeDetai
         ) : (
           <div className="flex flex-col items-center justify-center rounded-xl border border-dashed border-border py-10">
             <PrinterIcon className="h-10 w-10 text-muted-foreground/40 mb-2" />
-            <p className="text-sm text-muted-foreground">Bu kartuş henüz bir yazıcıya bağlı değil.</p>
+            <p className="text-sm text-muted-foreground">Bu toner henüz bir yazıcıya bağlı değil.</p>
           </div>
         )}
       </div>

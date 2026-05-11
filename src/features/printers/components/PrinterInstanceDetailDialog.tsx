@@ -3,7 +3,7 @@
 import type React from 'react'
 import { useMemo } from 'react'
 import Link from 'next/link'
-import { EyeIcon, Edit2Icon, Trash2Icon, MapPinIcon, HashIcon, MonitorIcon, UserIcon, StickyNoteIcon, Building2Icon, PrinterIcon, ArrowRightIcon } from 'lucide-react'
+import { EyeIcon, Edit2Icon, Trash2Icon, MapPinIcon, HashIcon, UserIcon, StickyNoteIcon, Building2Icon, PrinterIcon, ArrowRightIcon } from 'lucide-react'
 import { AddEntityDialog } from '@/components/ui/add-entity-dialog'
 import { DeleteDialog } from '@/components/ui/delete-dialog'
 import { Dialog, DialogContent, DialogDescription, DialogHeader, DialogTitle, DialogTrigger } from '@/components/ui/dialog'
@@ -13,7 +13,6 @@ import { updatePhysicalPrinter, deletePhysicalPrinter } from '@/features/printer
 export type PrinterInstanceDetail = {
   id: string
   serialNumber: string | null
-  inventoryNumber: string | null
   assignedTo: string | null
   ipAddress: string | null
   notes: string | null
@@ -52,7 +51,6 @@ export function PrinterInstanceDetailDialog({ printerModelId, printerName, print
     id: printer.id,
     printerModelId,
     serialNumber: printer.serialNumber ?? '',
-    inventoryNumber: printer.inventoryNumber ?? '',
     assignedTo: printer.assignedTo ?? '',
     ipAddress: printer.ipAddress ?? '',
     notes: printer.notes ?? '',
@@ -68,9 +66,9 @@ export function PrinterInstanceDetailDialog({ printerModelId, printerName, print
         <DialogTrigger asChild>
           <button className="group flex min-w-0 flex-1 items-center gap-3 text-left sm:gap-4">
             <div className="min-w-0 flex-1">
-              <p className="truncate text-sm font-medium text-foreground">{printer.serialNumber || printer.inventoryNumber || printer.id}</p>
+              <p className="truncate text-sm font-medium text-foreground">{printerName || 'Yazıcı'}</p>
               <p className="text-xs text-muted-foreground">
-                {printer.departmentName ?? 'Departman yok'} • {printer.ipAddress ?? 'IP yok'}
+                Seri No: {printer.serialNumber || 'Yok'} • {printer.departmentName ?? 'Departman yok'} • {printer.ipAddress ?? 'IP yok'}
               </p>
             </div>
             <div className="flex h-10 w-10 items-center justify-center rounded-full border border-border bg-background/80 text-muted-foreground transition-colors group-hover:text-primary">
@@ -93,7 +91,6 @@ export function PrinterInstanceDetailDialog({ printerModelId, printerName, print
                 { name: 'id', label: 'id', type: 'hidden', value: printer.id },
                 { name: 'printerModelId', label: 'printerModelId', type: 'hidden', value: printerModelId },
                 { name: 'serialNumber', label: 'Seri Numarası', placeholder: 'Opsiyonel', required: false },
-                { name: 'inventoryNumber', label: 'Envanter Numarası', placeholder: 'Opsiyonel', required: false },
                 { name: 'assignedTo', label: 'Atanan Kişi / Yer', placeholder: 'Opsiyonel', required: false },
                 { name: 'ipAddress', label: 'IP Adresi', placeholder: 'Opsiyonel', required: false },
                 { name: 'notes', label: 'Genel Notlar', placeholder: 'Yazıcıya ait genel notlar...', type: 'textarea', required: false },
@@ -136,10 +133,10 @@ export function PrinterInstanceDetailDialog({ printerModelId, printerName, print
               </div>
               <div className="min-w-0 flex-1">
                 <DialogTitle className="text-2xl">
-                  {printer.serialNumber || printer.inventoryNumber || 'Fiziksel Yazıcı Detayı'}
+                  {printerName || 'Yazıcı'}
                 </DialogTitle>
                 <DialogDescription className="mt-1">
-                  {printerName} modeline bağlı fiziksel yazıcı bilgileri.
+                  Seri No: {printer.serialNumber || 'Yok'} • Fiziksel yazıcı bilgileri.
                 </DialogDescription>
               </div>
             </div>
@@ -147,7 +144,6 @@ export function PrinterInstanceDetailDialog({ printerModelId, printerName, print
 
           <div className="mt-6 grid gap-4 md:grid-cols-2">
             <DetailRow icon={<HashIcon className="h-3.5 w-3.5" />} label="Seri Numarası" value={printer.serialNumber || '-'} />
-            <DetailRow icon={<MonitorIcon className="h-3.5 w-3.5" />} label="Envanter Numarası" value={printer.inventoryNumber || '-'} />
             <DetailRow icon={<UserIcon className="h-3.5 w-3.5" />} label="Atanan Kişi / Yer" value={printer.assignedTo || '-'} />
             <DetailRow icon={<MapPinIcon className="h-3.5 w-3.5" />} label="IP Adresi" value={printer.ipAddress || '-'} />
             <DetailRow icon={<Building2Icon className="h-3.5 w-3.5" />} label="Departman" value={printer.departmentName || '-'} />

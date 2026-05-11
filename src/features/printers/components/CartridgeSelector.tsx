@@ -68,7 +68,7 @@ export function CartridgeSelector({ printerId, initialCartridges }: CartridgeSel
         formData.append('printerId', printerId)
         selected.forEach(c => formData.append('cartridgeIds', c.id))
         await updatePrinterCartridges(formData)
-        toast.success('Uyumlu kartuşlar güncellendi!')
+        toast.success('Uyumlu tonerler güncellendi!')
         setResults([])
         setQuery('')
       } catch {
@@ -86,7 +86,7 @@ export function CartridgeSelector({ printerId, initialCartridges }: CartridgeSel
           type="text"
           value={query}
           onChange={e => handleSearch(e.target.value)}
-          placeholder="Kartuş adı yazarak arayın..."
+          placeholder="Toner adı yazarak arayın..."
           className="w-full rounded-xl border border-border bg-muted/40 py-2.5 pl-10 pr-4 text-sm placeholder:text-muted-foreground focus:border-primary focus:outline-none focus:ring-2 focus:ring-primary/20"
         />
         {isSearching && (
@@ -146,7 +146,7 @@ export function CartridgeSelector({ printerId, initialCartridges }: CartridgeSel
           ))}
         </div>
       ) : (
-        <p className="text-sm text-muted-foreground">Henüz uyumlu kartuş eklenmemiş.</p>
+        <p className="text-sm text-muted-foreground">Henüz uyumlu  eklenmemiş.</p>
       )}
 
       {/* Save button */}

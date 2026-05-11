@@ -18,7 +18,7 @@ async function recalculateStock(cartridgeId: string) {
 
 export async function addStockEntry(formData: FormData) {
   const cartridgeId = formData.get('cartridgeId')?.toString()
-  if (!cartridgeId) throw new Error('Kartuş ID eksik.')
+  if (!cartridgeId) throw new Error('Toner ID eksik.')
 
   const quantity = Number(formData.get('quantity'))
   const unitPrice = formData.get('unitPrice')?.toString()
@@ -52,7 +52,7 @@ export async function deleteStockEntry(formData: FormData) {
 
 export async function addStockOut(formData: FormData) {
   const cartridgeId = formData.get('cartridgeId')?.toString()
-  if (!cartridgeId) throw new Error('Kartuş ID eksik.')
+  if (!cartridgeId) throw new Error('Toner ID eksik.')
 
   const quantity = Number(formData.get('quantity'))
   const departmentId = formData.get('departmentId')?.toString()
@@ -67,7 +67,7 @@ export async function addStockOut(formData: FormData) {
 
   // Check stock availability
   const cartridge = await prisma.cartridge.findUnique({ where: { id: cartridgeId }, select: { stock: true } })
-  if (!cartridge) throw new Error('Kartuş bulunamadı.')
+  if (!cartridge) throw new Error('Toner bulunamadı.')
   if (cartridge.stock < quantity) throw new Error(`Yetersiz stok. Mevcut: ${cartridge.stock} adet.`)
 
   await prisma.stockOut.create({

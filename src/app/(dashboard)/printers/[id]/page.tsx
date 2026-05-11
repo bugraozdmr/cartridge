@@ -7,8 +7,18 @@ import { getAll as getDepartments } from '@/features/departments/repo'
 import { CartridgeSelector } from '@/features/printers/components/CartridgeSelector'
 import { PrinterDetailActions } from '@/features/printers/components/PrinterDetailActions'
 import { PrinterInstanceDetailDialog } from '@/features/printers/components/PrinterInstanceDetailDialog'
+import type { PrinterInstanceDetail } from '@/features/printers/components/PrinterInstanceDetailDialog'
 import { ImagePreview } from '@/components/ui/image-preview'
 import { AddEntityDialog } from '@/components/ui/add-entity-dialog'
+
+type CompactDepartment = { id: string; name: string }
+type CompactCartridge = {
+  id: string
+  name: string
+  imageUrl: string | null
+  currentPrice?: { toString(): string } | string | number | null
+}
+
 export async function generateMetadata({ params }: { params: Promise<{ id: string }> }) {
   const { id } = await params
   const printer = await getById(id)
@@ -23,7 +33,10 @@ export default async function PrinterDetailPage({ params }: { params: Promise<{ 
   const printer = await getById(id)
   if (!printer) notFound()
 
-  const departments = await getDepartments()
+  const departments = (await getDepartments()) as CompactDepartment[]
+  const departmentOptions = departments.map((d) => ({ value: d.id, label: d.name }))
+  const cartridges = printer.cartridges as CompactCartridge[]
+  const physicalPrinters = (printer.printers ?? []) as PrinterInstanceDetail[]
 
   return (
     <div className="space-y-8">
@@ -49,7 +62,7 @@ export default async function PrinterDetailPage({ params }: { params: Promise<{ 
           <div className="min-w-0 flex-1">
             <h1 className="text-2xl font-bold text-foreground">{printer.name}</h1>
             <p className="mt-1 text-sm text-muted-foreground">
-              {printer.cartridges.length} uyumlu kartuş
+              {printer.cartridges.length} uyumlu toner
             </p>
           </div>
           <PrinterDetailActions printer={{
@@ -63,14 +76,14 @@ export default async function PrinterDetailPage({ params }: { params: Promise<{ 
       {/* Compatible cartridges manager */}
       <div className="rounded-2xl border border-border bg-card p-6 space-y-5">
         <div>
-          <h2 className="text-lg font-semibold text-foreground">Uyumlu Kartuşlar</h2>
+          <h2 className="text-lg font-semibold text-foreground">Uyumlu Tonerler</h2>
           <p className="mt-0.5 text-sm text-muted-foreground">
-            Arama kutusuna yazarak kartuş ekleyin, X ile kaldırın, ardından kaydedin.
+            Arama kutusuna yazarak toner ekleyin, X ile kaldırın, ardından kaydedin.
           </p>
         </div>
         <CartridgeSelector
           printerId={printer.id}
-          initialCartridges={printer.cartridges.map(c => ({
+          initialCartridges={cartridges.map((c) => ({
             id: c.id,
             name: c.name,
             imageUrl: c.imageUrl ?? null,
@@ -93,24 +106,23 @@ export default async function PrinterDetailPage({ params }: { params: Promise<{ 
             fields={[
               { name: 'printerModelId', label: 'printerModelId', type: 'hidden', value: printer.id },
               { name: 'serialNumber', label: 'Seri Numarası', placeholder: 'Opsiyonel', required: false },
-              { name: 'inventoryNumber', label: 'Envanter Numarası', placeholder: 'Opsiyonel', required: false },
               { name: 'assignedTo', label: 'Atanan Kişi / Yer', placeholder: 'Opsiyonel', required: false },
               { name: 'ipAddress', label: 'IP Adresi', placeholder: 'Opsiyonel', required: false },
               { name: 'notes', label: 'Notlar', placeholder: 'Opsiyonel', type: 'textarea', required: false },
-              { name: 'departmentId', label: 'Departman', type: 'select', required: true, options: departments.map(d => ({ value: d.id, label: d.name })) }
+              { name: 'departmentId', label: 'Departman', type: 'select', required: true, options: departmentOptions }
             ]}
           />
         </div>
 
-        {printer.printers && printer.printers.length > 0 ? (
+        {physicalPrinters.length > 0 ? (
           <div className="grid gap-3">
-            {printer.printers.map(p => (
+            {physicalPrinters.map((p) => (
               <PrinterInstanceDetailDialog
                 key={p.id}
                 printerModelId={printer.id}
                 printerName={printer.name}
                 printer={p}
-                departments={departments.map(d => ({ value: d.id, label: d.name }))}
+                departments={departmentOptions}
               />
             ))}
           </div>
@@ -120,11 +132,11 @@ export default async function PrinterDetailPage({ params }: { params: Promise<{ 
       </div>
 
       {/* Current cartridges list */}
-      {printer.cartridges.length > 0 && (
+      {cartridges.length > 0 && (
         <div className="rounded-2xl border border-border bg-card p-6 space-y-4">
-          <h2 className="text-lg font-semibold text-foreground">Mevcut Uyumlu Kartuşlar</h2>
+          <h2 className="text-lg font-semibold text-foreground">Mevcut Uyumlu Tonerler</h2>
           <div className="grid gap-3">
-            {printer.cartridges.map(cartridge => (
+            {cartridges.map((cartridge) => (
               <div
                 key={cartridge.id}
                 className="group flex items-center gap-4 rounded-xl border border-border bg-muted/30 p-3 hover:bg-muted/60 transition-colors"
@@ -138,8 +150,10 @@ export default async function PrinterDetailPage({ params }: { params: Promise<{ 
                 />
                 <Link href={`/cartridges/${cartridge.id}`} className="min-w-0 flex-1">
                   <p className="text-sm font-medium text-foreground truncate">{cartridge.name}</p>
-                  {cartridge.currentPrice && (
-                    <p className="text-xs text-muted-foreground">₺{cartridge.currentPrice}</p>
+                  {cartridge.currentPrice != null && (
+                    <p className="text-xs text-muted-foreground">
+                      ₺{typeof cartridge.currentPrice === 'object' ? cartridge.currentPrice.toString() : cartridge.currentPrice}
+                    </p>
                   )}
                 </Link>
                 <Link href={`/cartridges/${cartridge.id}`} className="text-xs text-muted-foreground group-hover:text-primary transition-colors">

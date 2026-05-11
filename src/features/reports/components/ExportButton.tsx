@@ -24,14 +24,9 @@ export function ExportButton({ data, startDate, endDate }: ExportButtonProps) {
     setIsExporting(true)
     try {
       const workbook = new ExcelJS.Workbook()
-      workbook.creator = 'Bilgi İşlem Stok Takip'
-      workbook.lastModifiedBy = 'Bilgi İşlem'
-      workbook.created = new Date()
-
-      // 1. Sheet: Stock Entries
-      const entrySheet = workbook.addWorksheet('Stok Girişleri', {
-        views: [{ state: 'frozen', ySplit: 1 }]
-      })
+      
+      // 1. Sheet: Stok Girişleri
+      const entrySheet = workbook.addWorksheet('Stok Girişleri')
       
       entrySheet.columns = [
         { header: 'Tarih', key: 'date', width: 18 },
@@ -41,62 +36,54 @@ export function ExportButton({ data, startDate, endDate }: ExportButtonProps) {
         { header: 'Toplam', key: 'total', width: 20 },
       ]
 
-      // Style header
-      const headerRow = entrySheet.getRow(1)
-      headerRow.height = 25
-      headerRow.eachCell((cell) => {
-        cell.font = { bold: true, color: { argb: 'FFFFFFFF' }, size: 11 }
-        cell.fill = {
-          type: 'pattern',
-          pattern: 'solid',
-          fgColor: { argb: 'FF10B981' } // Emerald 500
-        }
-        cell.alignment = { vertical: 'middle', horizontal: 'center' }
-        cell.border = {
-          top: { style: 'thin' },
-          left: { style: 'thin' },
-          bottom: { style: 'thin' },
-          right: { style: 'thin' }
-        }
-      })
+      // Header Style
+      entrySheet.getRow(1).font = { bold: true, color: { argb: 'FFFFFFFF' } }
+      entrySheet.getRow(1).fill = { type: 'pattern', pattern: 'solid', fgColor: { argb: 'FF10B981' } }
 
       let totalEntryValue = 0
+      let totalQuantity = 0
+
       data.stockEntries.forEach(e => {
+        const qty = Number(e.quantity) || 0
+        const price = Number(e.unitPrice) || 0
+        const rowTotal = Number(e.total) || (qty * price)
+
         const row = entrySheet.addRow({
           date: format(new Date(e.date), 'dd MMMM yyyy', { locale: tr }),
           name: e.name,
-          quantity: e.quantity,
-          unitPrice: e.unitPrice,
-          total: e.total
+          quantity: qty,
+          unitPrice: price,
+          total: rowTotal
         })
-        totalEntryValue += e.total
         
-        // Format currency cells
+        totalEntryValue += rowTotal
+        totalQuantity += qty
+        
         row.getCell('unitPrice').numFmt = '#,##0.00 "₺"'
         row.getCell('total').numFmt = '#,##0.00 "₺"'
-        row.alignment = { vertical: 'middle' }
       })
 
-      // Add Total Row
-      const entryTotalRow = entrySheet.addRow({
-        name: 'GENEL TOPLAM',
-        total: totalEntryValue
-      })
+      // GENEL TOPLAM SATIRI - EN SAĞLAM YÖNTEM
+      const entryTotalRow = entrySheet.addRow([
+        '',
+        'GENEL TOPLAM',
+        totalQuantity,
+        '',
+        totalEntryValue,
+      ])
+
       entryTotalRow.font = { bold: true, size: 12 }
+      entryTotalRow.getCell(3).numFmt = '0'
       entryTotalRow.getCell('total').numFmt = '#,##0.00 "₺"'
-      entryTotalRow.eachCell(cell => {
-        cell.fill = {
-          type: 'pattern',
-          pattern: 'solid',
-          fgColor: { argb: 'FFF9FAFB' }
-        }
+      
+      // Arka plan rengi ve üst çizgi
+      entryTotalRow.eachCell((cell) => {
+        cell.fill = { type: 'pattern', pattern: 'solid', fgColor: { argb: 'FFF9FAFB' } }
         cell.border = { top: { style: 'medium' } }
       })
 
-      // 2. Sheet: Stock Outs
-      const outSheet = workbook.addWorksheet('Stok Çıkışları', {
-        views: [{ state: 'frozen', ySplit: 1 }]
-      })
+      // 2. Sheet: Stok Çıkışları
+      const outSheet = workbook.addWorksheet('Stok Çıkışları')
       outSheet.columns = [
         { header: 'İşlem Tarihi', key: 'date', width: 18 },
         { header: 'Departman', key: 'department', width: 35 },
@@ -105,49 +92,34 @@ export function ExportButton({ data, startDate, endDate }: ExportButtonProps) {
         { header: 'Miktar', key: 'quantity', width: 15 },
       ]
 
-      const outHeaderRow = outSheet.getRow(1)
-      outHeaderRow.height = 25
-      outHeaderRow.eachCell((cell) => {
-        cell.font = { bold: true, color: { argb: 'FFFFFFFF' }, size: 11 }
-        cell.fill = {
-          type: 'pattern',
-          pattern: 'solid',
-          fgColor: { argb: 'FFF43F5E' } // Rose 500
-        }
-        cell.alignment = { vertical: 'middle', horizontal: 'center' }
-        cell.border = {
-          top: { style: 'thin' },
-          left: { style: 'thin' },
-          bottom: { style: 'thin' },
-          right: { style: 'thin' }
-        }
-      })
+      outSheet.getRow(1).font = { bold: true, color: { argb: 'FFFFFFFF' } }
+      outSheet.getRow(1).fill = { type: 'pattern', pattern: 'solid', fgColor: { argb: 'FFF43F5E' } }
 
       let totalOutQty = 0
       data.stockOuts.forEach(o => {
-        const row = outSheet.addRow({
+        const qty = Number(o.quantity) || 0
+        outSheet.addRow({
           date: format(new Date(o.date), 'dd MMMM yyyy', { locale: tr }),
           department: o.departmentName,
           printer: o.printerLabel || '—',
           cartridge: o.cartridgeName,
-          quantity: o.quantity
+          quantity: qty
         })
-        totalOutQty += o.quantity
-        row.alignment = { vertical: 'middle' }
+        totalOutQty += qty
       })
 
       const outTotalRow = outSheet.addRow({
+        date: '',
+        department: '',
+        printer: '',
         cartridge: 'TOPLAM TÜKETİM',
         quantity: totalOutQty
       })
       outTotalRow.font = { bold: true }
       outTotalRow.border = { top: { style: 'medium' } }
 
-      // Generate buffer and save
       const buffer = await workbook.xlsx.writeBuffer()
-      const blob = new Blob([buffer], { type: 'application/vnd.openxmlformats-officedocument.spreadsheetml.sheet' })
-      const fileName = `Envanter_Raporu_${format(startDate, 'dd_MM_yyyy')}_${format(endDate, 'dd_MM_yyyy')}.xlsx`
-      saveAs(blob, fileName)
+      saveAs(new Blob([buffer]), `Envanter_Raporu_${format(startDate, 'dd_MM_yyyy')}.xlsx`)
       
     } catch (error) {
       console.error('Export failed:', error)
@@ -163,11 +135,7 @@ export function ExportButton({ data, startDate, endDate }: ExportButtonProps) {
       variant="outline" 
       className="h-11 w-full rounded-xl gap-2 border-border bg-card/60 font-bold text-xs uppercase tracking-widest hover:bg-muted transition-all sm:w-auto"
     >
-      {isExporting ? (
-        <Loader2Icon className="h-3.5 w-3.5 animate-spin" />
-      ) : (
-        <DownloadIcon className="h-3.5 w-3.5" />
-      )}
+      {isExporting ? <Loader2Icon className="animate-spin h-4 w-4" /> : <DownloadIcon h-4 w-4 />}
       {isExporting ? 'Hazırlanıyor...' : 'Excel Aktar'}
     </Button>
   )

@@ -14,7 +14,7 @@ export async function getById(id: string) {
         orderBy: { issueDate: 'desc' },
         include: {
           department: { select: { id: true, name: true } },
-          printer: { select: { id: true, serialNumber: true, inventoryNumber: true } }
+          printer: { select: { id: true, serialNumber: true } }
         }
       }
     }
@@ -29,13 +29,26 @@ export async function getById(id: string) {
     createdAt: item.createdAt,
     updatedAt: item.updatedAt,
     printerModels: item.printerModels,
-    stockEntries: item.stockEntries.map(e => ({
+    stockEntries: item.stockEntries.map((e: {
+      id: string
+      quantity: number
+      unitPrice: any
+      entryDate: Date
+    }) => ({
       id: e.id,
       quantity: e.quantity,
       unitPrice: e.unitPrice ? e.unitPrice.toString() : null,
       entryDate: e.entryDate,
     })),
-    stockOuts: item.stockOuts.map(o => ({
+    stockOuts: item.stockOuts.map((o: {
+      id: string
+      quantity: number
+      issueDate: Date
+      department: { id: string; name: string }
+      printer: { id: string; serialNumber: string | null } | null
+      receiverName: string | null
+      notes: string | null
+    }) => ({
       id: o.id,
       quantity: o.quantity,
       issueDate: o.issueDate,
@@ -43,7 +56,6 @@ export async function getById(id: string) {
       printer: o.printer ? {
         id: o.printer.id,
         serialNumber: o.printer.serialNumber,
-        inventoryNumber: o.printer.inventoryNumber,
       } : null,
       receiverName: o.receiverName,
       notes: o.notes,

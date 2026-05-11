@@ -2,7 +2,7 @@ import prisma from '@/lib/prisma'
 
 export async function getAll() {
   const items = await prisma.cartridge.findMany({ include: { printerModels: true, stockEntries: true }, orderBy: { createdAt: 'desc' } })
-  return items.map(item => ({
+  return items.map((item: any) => ({
     id: item.id,
     name: item.name,
     stock: item.stock,
@@ -10,7 +10,7 @@ export async function getAll() {
     currentPrice: item.currentPrice ? item.currentPrice.toString() : null,
     createdAt: item.createdAt,
     updatedAt: item.updatedAt,
-    stockEntries: item.stockEntries.map(entry => ({
+    stockEntries: item.stockEntries.map((entry: any) => ({
       id: entry.id,
       quantity: entry.quantity,
       unitPrice: entry.unitPrice ? entry.unitPrice.toString() : null,
@@ -21,7 +21,6 @@ export async function getAll() {
 
 export async function getPage({ query, page = 1, pageSize = 20 }: { query?: string; page?: number; pageSize?: number }) {
   const skip = (page - 1) * pageSize
-
   const where = query ? { name: { contains: query } } : {}
 
   const [items, total] = await Promise.all([
@@ -35,7 +34,8 @@ export async function getPage({ query, page = 1, pageSize = 20 }: { query?: stri
     prisma.cartridge.count({ where })
   ])
 
-  const itemsWithStrings = items.map(item => ({
+  // ÇÖZÜM: item: any ve entry: any ekledik
+  const itemsWithStrings = items.map((item: any) => ({
     id: item.id,
     name: item.name,
     stock: item.stock,
@@ -43,7 +43,7 @@ export async function getPage({ query, page = 1, pageSize = 20 }: { query?: stri
     currentPrice: item.currentPrice ? item.currentPrice.toString() : null,
     createdAt: item.createdAt,
     updatedAt: item.updatedAt,
-    stockEntries: item.stockEntries.map(entry => ({
+    stockEntries: item.stockEntries.map((entry: any) => ({
       id: entry.id,
       quantity: entry.quantity,
       unitPrice: entry.unitPrice ? entry.unitPrice.toString() : null,
@@ -97,11 +97,10 @@ export async function getAllCompact() {
 }
 
 export async function bulkAddStock(entries: { cartridgeId: string; quantity: number; unitPrice: string }[]) {
-  return prisma.$transaction(async (tx) => {
+  return prisma.$transaction(async (tx: any) => {
     for (const entry of entries) {
       if (entry.quantity <= 0) continue
 
-      // Create stock entry
       await tx.stockEntry.create({
         data: {
           cartridgeId: entry.cartridgeId,
@@ -110,7 +109,6 @@ export async function bulkAddStock(entries: { cartridgeId: string; quantity: num
         }
       })
 
-      // Update cartridge stock and currentPrice
       await tx.cartridge.update({
         where: { id: entry.cartridgeId },
         data: {

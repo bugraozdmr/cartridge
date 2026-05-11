@@ -6,6 +6,24 @@ export interface ReportFilters {
   end?: Date
 }
 
+type StockEntryRow = {
+  id: string
+  entryDate: Date
+  quantity: number
+  unitPrice: any
+  cartridge: { id: string; name: string; imageUrl: string | null }
+}
+
+type StockOutRow = {
+  id: string
+  issueDate: Date
+  quantity: number
+  departmentId: string
+  cartridge: { id: string; name: string; currentPrice: any }
+  department: { id: string; name: string }
+  printer: { id: string; serialNumber: string | null } | null
+}
+
 export async function getReportsData(filters: ReportFilters) {
   const start = filters.start || startOfDay(subDays(new Date(), 30))
   const end = filters.end || endOfDay(new Date())
@@ -16,7 +34,7 @@ export async function getReportsData(filters: ReportFilters) {
         entryDate: { gte: start, lte: end }
       },
       include: {
-        cartridge: { select: { name: true, imageUrl: true } }
+        cartridge: { select: { id: true, name: true, imageUrl: true } }
       },
       orderBy: { entryDate: 'desc' }
     }),
@@ -27,7 +45,7 @@ export async function getReportsData(filters: ReportFilters) {
       include: {
         cartridge: { select: { id: true, name: true, currentPrice: true } },
         department: { select: { id: true, name: true } },
-        printer: { select: { id: true, serialNumber: true, inventoryNumber: true } }
+        printer: { select: { id: true, serialNumber: true } }
       },
       orderBy: { issueDate: 'desc' }
     }),
@@ -45,14 +63,17 @@ export async function getReportsData(filters: ReportFilters) {
   ])
 
   // Summary Calculations
-  const totalSpend = stockEntries.reduce((acc, curr) => acc + (Number(curr.unitPrice) * curr.quantity), 0)
-  const totalUnitsPurchased = stockEntries.reduce((acc, curr) => acc + curr.quantity, 0)
-  const totalUnitsIssued = stockOuts.reduce((acc, curr) => acc + curr.quantity, 0)
-  const estimatedConsumptionValue = stockOuts.reduce((acc, curr) => acc + (Number(curr.cartridge.currentPrice) * curr.quantity), 0)
+  const typedStockEntries = stockEntries as StockEntryRow[]
+  const typedStockOuts = stockOuts as StockOutRow[]
+  
+  const totalSpend = typedStockEntries.reduce((acc: number, curr: StockEntryRow) => acc + (Number(curr.unitPrice) * curr.quantity), 0)
+  const totalUnitsPurchased = typedStockEntries.reduce((acc: number, curr: StockEntryRow) => acc + curr.quantity, 0)
+  const totalUnitsIssued = typedStockOuts.reduce((acc: number, curr: StockOutRow) => acc + curr.quantity, 0)
+  const estimatedConsumptionValue = typedStockOuts.reduce((acc: number, curr: StockOutRow) => acc + (Number(curr.cartridge.currentPrice) * curr.quantity), 0)
 
   // Grouped Data for Charts/Tables
   // 1. Spend by Cartridge
-  const spendByCartridge = stockEntries.reduce((acc, curr) => {
+  const spendByCartridge = typedStockEntries.reduce((acc: Record<string, { id: string, name: string, total: number, quantity: number }>, curr: StockEntryRow) => {
     const name = curr.cartridge.name
     const id = curr.cartridge.id
     if (!acc[name]) acc[name] = { id, name, total: 0, quantity: 0 }
@@ -62,7 +83,7 @@ export async function getReportsData(filters: ReportFilters) {
   }, {} as Record<string, { id: string, name: string, total: number, quantity: number }>)
 
   // 2. Consumption by Department
-  const consumptionByDept = stockOuts.reduce((acc, curr) => {
+  const consumptionByDept = typedStockOuts.reduce((acc: Record<string, { id: string, name: string, totalValue: number, quantity: number }>, curr: StockOutRow) => {
     const name = curr.department.name
     const id = curr.departmentId
     if (!acc[name]) acc[name] = { id, name, totalValue: 0, quantity: 0 }
@@ -78,7 +99,7 @@ export async function getReportsData(filters: ReportFilters) {
       totalUnitsIssued,
       estimatedConsumptionValue
     },
-    stockEntries: stockEntries.map(e => ({
+    stockEntries: typedStockEntries.map((e: StockEntryRow) => ({
       id: e.id,
       date: e.entryDate,
       name: e.cartridge.name,
@@ -87,7 +108,7 @@ export async function getReportsData(filters: ReportFilters) {
       unitPrice: Number(e.unitPrice),
       total: Number(e.unitPrice) * e.quantity
     })),
-    stockOuts: stockOuts.map(o => ({
+    stockOuts: typedStockOuts.map((o: StockOutRow) => ({
       id: o.id,
       date: o.issueDate,
       cartridgeName: o.cartridge.name,
@@ -96,7 +117,7 @@ export async function getReportsData(filters: ReportFilters) {
       departmentId: o.department.id,
       quantity: o.quantity,
       printerId: o.printer?.id ?? null,
-      printerLabel: o.printer?.serialNumber || o.printer?.inventoryNumber || null,
+      printerLabel: o.printer?.serialNumber || null,
       currentUnitPrice: Number(o.cartridge.currentPrice),
       totalValue: Number(o.cartridge.currentPrice) * o.quantity
     })),

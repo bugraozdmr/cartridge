@@ -11,15 +11,26 @@ export async function GET(req: Request) {
 
     const printers = await prisma.printer.findMany({
       where: { departmentId },
-      orderBy: [{ serialNumber: 'asc' }, { inventoryNumber: 'asc' }],
-      select: { id: true, serialNumber: true, inventoryNumber: true },
+      orderBy: [{ serialNumber: 'asc' }, { id: 'asc' }],
+      select: {
+        id: true,
+        serialNumber: true,
+        ipAddress: true,
+        assignedTo: true,
+        printerModel: { select: { name: true } },
+      },
     })
 
-    const results = printers.map(p => ({
+    const results = printers.map((p: { 
+      id: string, 
+      serialNumber: string | null, 
+      ipAddress: string | null, 
+      assignedTo: string | null,
+      printerModel: { name: string } | null
+    }) => ({
       id: p.id,
       serialNumber: p.serialNumber,
-      inventoryNumber: p.inventoryNumber,
-      label: p.serialNumber || p.inventoryNumber || p.id,
+      label: `${p.printerModel?.name || 'Yazıcı'}${p.serialNumber ? ` • ${p.serialNumber}` : p.ipAddress ? ` • ${p.ipAddress}` : p.assignedTo ? ` • ${p.assignedTo}` : ''}`,
     }))
 
     return NextResponse.json(results)

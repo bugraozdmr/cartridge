@@ -9,7 +9,7 @@ export const metadata = {
     default: "Bilgi İşlem",
     template: "%s | Bilgi İşlem",
   },
-  description: "Yazıcı ve kartuş yönetimi için modern admin paneli.",
+  description: "Yazıcı ve toner yönetimi için modern admin paneli.",
 };
 
 export default function RootLayout({ children }: { children: ReactNode }) {

@@ -1,22 +1,38 @@
 'use client'
 
 import Link from 'next/link'
+import { useRouter } from 'next/navigation'
 import { BoxIcon, EyeIcon, Edit2Icon, Trash2Icon } from 'lucide-react'
 import { deleteCartridge, updateCartridge } from '../actions'
 import { DeleteDialog } from '@/components/ui/delete-dialog'
 import { AddEntityDialog } from '@/components/ui/add-entity-dialog'
 import Image from 'next/image'
 
+type CartridgeListItem = {
+  id: string
+  name: string
+  stock: number | null
+  currentPrice: string | null
+  imageUrl: string | null
+}
+
 interface CartridgeListProps {
-  items: any[]
+  items: CartridgeListItem[]
 }
 
 export default function CartridgeList({ items }: CartridgeListProps) {
+  const router = useRouter()
+
+  const shouldIgnoreCardNavigation = (target: EventTarget | null) => {
+    const el = target as HTMLElement | null
+    return Boolean(el?.closest('a,button,input,textarea,select,label'))
+  }
+
   if (items.length === 0) {
     return (
       <div className="flex flex-col items-center justify-center rounded-xl border border-dashed border-border bg-card/40 py-12">
         <BoxIcon className="h-12 w-12 text-muted-foreground/50 mb-3" />
-        <p className="text-sm text-muted-foreground">Henüz kartuş eklenmemiş.</p>
+        <p className="text-sm text-muted-foreground">Henüz toner eklenmemiş.</p>
       </div>
     )
   }
@@ -26,7 +42,24 @@ export default function CartridgeList({ items }: CartridgeListProps) {
       <div className="min-w-[520px] space-y-3">
         <div className="grid gap-3">
         {items.map((cartridge) => (
-          <div key={cartridge.id} className="group relative rounded-lg border border-border bg-card/60 hover:bg-card/80 transition-colors p-4">
+          <div
+            key={cartridge.id}
+            role="link"
+            tabIndex={0}
+            aria-label={`${cartridge.name} detay`}
+            onClick={(e) => {
+              if (shouldIgnoreCardNavigation(e.target)) return
+              router.push(`/cartridges/${cartridge.id}`)
+            }}
+            onKeyDown={(e) => {
+              if (shouldIgnoreCardNavigation(e.target)) return
+              if (e.key === 'Enter' || e.key === ' ') {
+                e.preventDefault()
+                router.push(`/cartridges/${cartridge.id}`)
+              }
+            }}
+            className="group relative rounded-lg border border-border bg-card/60 hover:bg-card/80 transition-colors p-4 cursor-pointer"
+          >
             <div className="flex items-start gap-4">
               {cartridge.imageUrl ? (
                 <div className="relative h-10 w-10 shrink-0 overflow-hidden rounded-lg border border-border bg-muted">
@@ -56,23 +89,23 @@ export default function CartridgeList({ items }: CartridgeListProps) {
                 </Link>
                 
                 <AddEntityDialog 
-                  title="Kartuşu Düzenle"
-                  description="Kartuş bilgilerini güncelleyin."
+                  title="Toneri Düzenle"
+                  description="Toner bilgilerini güncelleyin."
                   triggerIcon={<Edit2Icon className="h-4 w-4" />}
                   triggerClassName="inline-flex items-center justify-center h-8 w-8 rounded-lg hover:bg-muted/60 text-muted-foreground hover:text-foreground transition-colors"
                   action={updateCartridge}
                   defaultValues={cartridge}
                   fields={[
-                    { name: 'image', label: 'Kartuş Görseli', type: 'image', required: false },
-                    { name: 'name', label: 'Kartuş Adı', placeholder: 'Örn: HP 83A', required: true },
+                    { name: 'image', label: 'Toner Görseli', type: 'image', required: false },
+                    { name: 'name', label: 'Toner Adı', placeholder: 'Örn: HP 83A', required: true },
                     { name: 'stock', label: 'Stok Adedi', type: 'number', placeholder: '0', required: true },
                     { name: 'currentPrice', label: 'Birim Fiyatı (₺)', type: 'number', step: '0.01', placeholder: '0.00', required: false }
                   ]}
                 />
 
                 <DeleteDialog
-                  title="Kartuşu Sil"
-                  description={`"${cartridge.name}" isimli kartuşu silmek istediğinize emin misiniz? Bu işlem geri alınamaz.`}
+                  title="Toneri Sil"
+                  description={`"${cartridge.name}" isimli toneri silmek istediğinize emin misiniz? Bu işlem geri alınamaz.`}
                   action={async () => {
                     const formData = new FormData()
                     formData.append('id', cartridge.id)

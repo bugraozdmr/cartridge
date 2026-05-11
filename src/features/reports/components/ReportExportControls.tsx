@@ -80,6 +80,7 @@ export function ReportExportControls({ data, departments, startDate, endDate }: 
       })
 
       let totalEntryValue = 0
+      let totalQuantity = 0
       data.stockEntries.forEach((entry) => {
         const row = entrySheet.addRow({
           date: format(new Date(entry.date), 'dd MMMM yyyy', { locale: tr }),
@@ -90,13 +91,21 @@ export function ReportExportControls({ data, departments, startDate, endDate }: 
         })
 
         totalEntryValue += entry.total
+        totalQuantity += Number(entry.quantity) || 0
         row.getCell('unitPrice').numFmt = '#,##0.00 "₺"'
         row.getCell('total').numFmt = '#,##0.00 "₺"'
         row.alignment = { vertical: 'middle' }
       })
 
-      const totalRow = entrySheet.addRow({ name: 'GENEL TOPLAM', total: totalEntryValue })
+      const totalRow = entrySheet.addRow({
+        date: '',
+        name: 'GENEL TOPLAM',
+        quantity: totalQuantity,
+        unitPrice: '',
+        total: totalEntryValue,
+      })
       totalRow.font = { bold: true, size: 12 }
+      totalRow.getCell('quantity').numFmt = '0'
       totalRow.getCell('total').numFmt = '#,##0.00 "₺"'
       totalRow.eachCell((cell) => {
         cell.fill = { type: 'pattern', pattern: 'solid', fgColor: { argb: 'FFF9FAFB' } }

@@ -12,7 +12,6 @@ import { LocalPagination } from '@/components/ui/local-pagination'
 interface PrinterInstance {
   id: string
   serialNumber: string | null
-  inventoryNumber: string | null
   assignedTo: string | null
   ipAddress: string | null
   notes: string | null
@@ -287,8 +286,8 @@ export function PrinterInstanceDetailClient({ printer }: ClientProps) {
               <ReceiptIcon className="h-4 w-4 text-rose-500" />
             </div>
             <div>
-              <h2 className="text-base font-semibold text-foreground">Kartuş Kullanım Geçmişi</h2>
-              <p className="text-xs text-muted-foreground">Bu yazıcıya takılan kartuşlar</p>
+              <h2 className="text-base font-semibold text-foreground">Toner Kullanım Geçmişi</h2>
+              <p className="text-xs text-muted-foreground">Bu yazıcıya takılan tonerler</p>
             </div>
           </div>
         </div>
@@ -366,7 +365,7 @@ export function PrinterInstanceDetailClient({ printer }: ClientProps) {
                 <thead>
                   <tr className="border-b border-border text-xs text-muted-foreground uppercase tracking-wider">
                     <th className="pb-3 text-left">Tarih</th>
-                    <th className="pb-3 text-left">Kartuş</th>
+                    <th className="pb-3 text-left">Toner</th>
                     <th className="pb-3 text-left">Departman</th>
                     <th className="pb-3 text-right">Adet</th>
                     <th className="pb-3 w-10" />
@@ -434,7 +433,7 @@ export function PrinterInstanceDetailClient({ printer }: ClientProps) {
         ) : (
           <div className="flex flex-col items-center justify-center rounded-xl border border-dashed border-border py-8">
             <ReceiptIcon className="h-8 w-8 text-muted-foreground/30 mb-2" />
-            <p className="text-sm text-muted-foreground">Bu yazıcıya henüz kartuş takılmamış.</p>
+            <p className="text-sm text-muted-foreground">Bu yazıcıya henüz toner takılmamış.</p>
           </div>
         )}
       </div>

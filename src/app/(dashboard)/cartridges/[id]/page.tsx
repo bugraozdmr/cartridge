@@ -7,7 +7,7 @@ export async function generateMetadata({ params }: { params: Promise<{ id: strin
   const cartridge = await getById(id)
 
   return {
-    title: cartridge ? `${cartridge.name} | Kartuş` : 'Kartuş',
+    title: cartridge ? `${cartridge.name} | Toner` : 'Toner',
   }
 }
 

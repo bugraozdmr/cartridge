@@ -1,6 +1,7 @@
 'use client'
 
 import { useState, useRef, useTransition, useEffect } from 'react'
+import { useRouter } from 'next/navigation'
 import { ArrowUpRightIcon, Loader2Icon, CalendarIcon, BuildingIcon, UserIcon, FileTextIcon } from 'lucide-react'
 import { toast } from 'react-hot-toast'
 import { Dialog, DialogContent, DialogHeader, DialogTitle, DialogTrigger, DialogDescription } from '@/components/ui/dialog'
@@ -9,7 +10,7 @@ import { SelectCustom } from '@/components/ui/select-custom'
 import { addStockOut } from '../stock-actions'
 
 interface Department { id: string; name: string }
-interface Printer { id: string; serialNumber?: string | null; inventoryNumber?: string | null }
+interface Printer { id: string; serialNumber?: string | null; label?: string | null }
 
 interface AddStockOutDialogProps {
   cartridgeId: string
@@ -20,6 +21,7 @@ interface AddStockOutDialogProps {
 export function AddStockOutDialog({ cartridgeId, currentStock, departments }: AddStockOutDialogProps) {
   const [open, setOpen] = useState(false)
   const [isPending, startTransition] = useTransition()
+  const router = useRouter()
   const [selectedDeptId, setSelectedDeptId] = useState<string>('')
   const [printers, setPrinters] = useState<Printer[]>([])
   const [selectedPrinterId, setSelectedPrinterId] = useState<string>('')
@@ -55,6 +57,24 @@ export function AddStockOutDialog({ cartridgeId, currentStock, departments }: Ad
     return () => { cancelled = true }
   }, [selectedDeptId])
 
+  // Listen for global quick-open event (dispatched from header). If received and matches this cartridge, open the dialog.
+  useEffect(() => {
+    function handler(e: Event) {
+      try {
+        const ev = e as CustomEvent<{ cartridgeId?: string }>
+        if (!ev?.detail) return
+        // If event has no cartridgeId, open unconditionally. If it has one, only open when matches our cartridgeId.
+        if (!ev.detail.cartridgeId || ev.detail.cartridgeId === cartridgeId) {
+          setOpen(true)
+        }
+      } catch (err) {
+        // ignore
+      }
+    }
+    window.addEventListener('open-stock-out', handler as EventListener)
+    return () => window.removeEventListener('open-stock-out', handler as EventListener)
+  }, [cartridgeId])
+
   const handleSubmit = (e: React.FormEvent<HTMLFormElement>) => {
     e.preventDefault()
     const form = formRef.current
@@ -63,12 +83,25 @@ export function AddStockOutDialog({ cartridgeId, currentStock, departments }: Ad
     const formData = new FormData(form)
     formData.append('cartridgeId', cartridgeId)
 
+    // client-side validation: quantity must not exceed current stock
+    const qtyRaw = formData.get('quantity')
+    const qty = qtyRaw ? Number(qtyRaw) : 0
+    if (!qty || qty < 1 || qty > currentStock) {
+      toast.error(`Lütfen 1 ile ${currentStock} arasında bir adet girin.`)
+      return
+    }
+
+    // avoid sending empty printerId
+    if (!formData.get('printerId')) {
+      formData.delete('printerId')
+    }
     startTransition(async () => {
       try {
         await addStockOut(formData)
         toast.success('Stok çıkışı kaydedildi!')
         form.reset()
         setOpen(false)
+        try { router.refresh() } catch (e) {}
       } catch (err: any) {
         toast.error(err?.message || 'Bir hata oluştu.')
       }
@@ -141,7 +174,7 @@ export function AddStockOutDialog({ cartridgeId, currentStock, departments }: Ad
                 <span className="text-sm font-medium text-foreground/90">Yazıcı <span className="text-muted-foreground font-normal">(isteğe bağlı)</span></span>
                 <SelectCustom
                   name="printerId"
-                  options={printers.map(p => ({ value: p.id, label: p.serialNumber || p.inventoryNumber || p.id }))}
+                  options={printers.map(p => ({ value: p.id, label: p.label || p.serialNumber || 'Yazıcı' }))}
                   value={selectedPrinterId}
                   onChange={setSelectedPrinterId}
                   placeholder={loadingPrinters ? 'Yükleniyor...' : printers.length ? 'Yazıcı seçin (isteğe bağlı)...' : 'Seçilen departmana ait yazıcı yok'}

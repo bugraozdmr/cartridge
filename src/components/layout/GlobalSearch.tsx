@@ -57,7 +57,7 @@ export function GlobalSearch() {
         <SearchIcon className="absolute left-3 top-1/2 h-4 w-4 -translate-y-1/2 text-muted-foreground" />
         <Input
           className="h-10 w-full rounded-xl border-border bg-muted/60 pl-10 pr-10 text-sm focus-visible:ring-primary/20"
-          placeholder="Yazıcı, kartuş veya departman ara..."
+          placeholder="Yazıcı, toner veya departman ara..."
           value={query}
           onChange={(e) => {
             setQuery(e.target.value)
@@ -132,7 +132,7 @@ export function GlobalSearch() {
 
                 {results.cartridges.length > 0 && (
                   <section>
-                    <h3 className="mb-2 px-2 text-[10px] font-bold uppercase tracking-widest text-muted-foreground">Kartuşlar</h3>
+                    <h3 className="mb-2 px-2 text-[10px] font-bold uppercase tracking-widest text-muted-foreground">Tonerler</h3>
                     <div className="space-y-1">
                       {results.cartridges.map((c: any) => (
                         <Link 

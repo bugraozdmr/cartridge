@@ -1,5 +1,26 @@
 import prisma from '@/lib/prisma'
 
+type CartridgeRow = {
+  id: string
+  name: string
+  stock: number
+  imageUrl: string | null
+  currentPrice: any
+}
+
+type PrinterRow = {
+  id: string
+  serialNumber: string | null
+  assignedTo: string | null
+  ipAddress: string | null
+  notes: string | null
+  printerModelId: string
+  departmentId: string
+  department: { id: string; name: string } | null
+  createdAt: Date
+  updatedAt: Date
+}
+
 export async function getById(id: string) {
   const item = await prisma.printerModel.findUnique({
     where: { id },
@@ -18,7 +39,6 @@ export async function getById(id: string) {
         select: {
           id: true,
           serialNumber: true,
-          inventoryNumber: true,
           assignedTo: true,
           ipAddress: true,
           notes: true,
@@ -34,15 +54,14 @@ export async function getById(id: string) {
   if (!item) return null
   return {
     ...item,
-    cartridges: item.cartridges.map(c => ({
+    cartridges: (item.cartridges as CartridgeRow[]).map((c: CartridgeRow) => ({
       ...c,
       currentPrice: c.currentPrice ? c.currentPrice.toString() : null
     }))
     ,
-    printers: item.printers?.map(p => ({
+    printers: (item.printers as PrinterRow[] | null)?.map((p: PrinterRow) => ({
       id: p.id,
       serialNumber: p.serialNumber || null,
-      inventoryNumber: p.inventoryNumber || null,
       assignedTo: p.assignedTo || null,
       ipAddress: p.ipAddress || null,
       notes: p.notes || null,

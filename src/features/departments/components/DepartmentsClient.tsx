@@ -1,8 +1,9 @@
 'use client'
 
-import { useTransition, useRef } from 'react'
+import { useMemo, useState, useTransition, useRef } from 'react'
 import { BuildingIcon, Trash2Icon, Loader2Icon, Edit2Icon, SendIcon, EyeIcon } from 'lucide-react'
 import Link from 'next/link'
+import { useRouter } from 'next/navigation'
 import { toast } from 'react-hot-toast'
 import { DeleteDialog } from '@/components/ui/delete-dialog'
 import { addDepartment, deleteDepartment, updateDepartment } from '../actions'
@@ -17,6 +18,19 @@ interface Department {
 export function DepartmentsClient({ departments }: { departments: Department[] }) {
   const formRef = useRef<HTMLFormElement>(null)
   const [isPending, startTransition] = useTransition()
+  const [filterQuery, setFilterQuery] = useState('')
+  const router = useRouter()
+
+  const filteredDepartments = useMemo(() => {
+    const q = filterQuery.trim().toLocaleLowerCase('tr-TR')
+    if (!q) return departments
+    return departments.filter((d) => d.name.toLocaleLowerCase('tr-TR').includes(q))
+  }, [departments, filterQuery])
+
+  const shouldIgnoreRowNavigation = (target: EventTarget | null) => {
+    const el = target as HTMLElement | null
+    return Boolean(el?.closest('a,button,input,textarea,select,label'))
+  }
 
   const handleAdd = (e: React.FormEvent<HTMLFormElement>) => {
     e.preventDefault()
@@ -30,7 +44,9 @@ export function DepartmentsClient({ departments }: { departments: Department[] }
         form.reset()
       } catch (error) {
         const err = error as { message?: string }
-        toast.error(err?.message || 'Bir hata oluştu.')
+        // toast.error(err?.message || 'Bir hata oluştu.')
+        toast.error('Bir hata oluştu.')
+        console.error(err?.message)
       }
     })
   }
@@ -66,11 +82,36 @@ export function DepartmentsClient({ departments }: { departments: Department[] }
       {/* ── Department list ───────────────────────────── */}
       <div className="overflow-hidden rounded-2xl border border-border bg-card">
         {departments.length > 0 ? (
-          <ul className="divide-y divide-border">
-            {departments.map((dept) => (
+          <>
+            <div className="border-b border-border bg-muted/10 p-4">
+              <input
+                value={filterQuery}
+                onChange={(e) => setFilterQuery(e.target.value)}
+                placeholder="Departman ara..."
+                className="h-11 w-full rounded-2xl border border-border bg-muted/30 px-4 text-sm text-foreground placeholder:text-muted-foreground transition-all focus:border-primary/50 focus:bg-background focus:outline-none focus:ring-4 focus:ring-primary/10"
+              />
+            </div>
+
+            {filteredDepartments.length > 0 ? (
+              <ul className="divide-y divide-border">
+                {filteredDepartments.map((dept) => (
               <li
                 key={dept.id}
-                className="flex items-center gap-4 px-5 py-3.5 transition-colors hover:bg-muted/20"
+                role="link"
+                tabIndex={0}
+                aria-label={`${dept.name} detay`}
+                onClick={(e) => {
+                  if (shouldIgnoreRowNavigation(e.target)) return
+                  router.push(`/departments/${dept.id}`)
+                }}
+                onKeyDown={(e) => {
+                  if (shouldIgnoreRowNavigation(e.target)) return
+                  if (e.key === 'Enter' || e.key === ' ') {
+                    e.preventDefault()
+                    router.push(`/departments/${dept.id}`)
+                  }
+                }}
+                className="flex items-center gap-4 px-5 py-3.5 transition-colors hover:bg-muted/20 cursor-pointer"
               >
                 {/* Icon */}
                 <div className="flex h-10 w-10 shrink-0 items-center justify-center rounded-xl bg-gradient-to-br from-sky-400/25 to-blue-400/10">
@@ -130,8 +171,15 @@ export function DepartmentsClient({ departments }: { departments: Department[] }
                   </DeleteDialog>
                 </div>
               </li>
-            ))}
-          </ul>
+                ))}
+              </ul>
+            ) : (
+              <div className="flex flex-col items-center justify-center py-12 px-4 text-center">
+                <p className="text-sm font-semibold text-foreground">Sonuç bulunamadı.</p>
+                <p className="mt-2 text-xs text-muted-foreground">Arama: <span className="font-medium text-foreground">{filterQuery.trim()}</span></p>
+              </div>
+            )}
+          </>
         ) : (
           <div className="flex flex-col items-center justify-center py-16 px-4 text-center">
             <div className="mb-4 flex h-16 w-16 items-center justify-center rounded-2xl bg-muted/40">

@@ -7,7 +7,7 @@ export async function generateMetadata({ params }: { params: Promise<{ id: strin
   const printer = await getInstanceById(id)
 
   return {
-    title: printer ? `${printer.printerModel.name} - ${printer.serialNumber || printer.inventoryNumber || 'Yazıcı'}` : 'Yazıcı',
+    title: printer ? `${printer.printerModel.name} - ${printer.serialNumber || 'Yazıcı'}` : 'Yazıcı',
   }
 }
 
