@@ -102,3 +102,22 @@ secure: false
 
 # Veritabanı test etmek
 npx tsx test-db.ts
+
+# Veritabanı gömmek
+mysql -u root -p cartridge_db < dump.sql 
+
+
+# Eğer hata olursa Datase_URL değişebilir
+DATABASE_URL="mysql://tonerci:kidemlitonerci@localhost:3306/cartridge_db?allowPublicKeyRetrieval=true"
+
+# Pm2 otomatik başlaması için
+pm2 startup systemd
+
+# Process listesini kaydetmek
+pm2 save
+
+# Sonrasında kontrol
+systemctl status pm2-root 
+
+# Kalıcılık
+systemctl enable pm2-root
