@@ -1,6 +1,7 @@
 'use client'
 
 import { useState, useRef, useTransition } from 'react'
+import { useRouter } from 'next/navigation'
 import { PlusIcon, Loader2Icon, CalendarIcon } from 'lucide-react'
 import { toast } from 'react-hot-toast'
 import { Dialog, DialogContent, DialogHeader, DialogTitle, DialogTrigger, DialogDescription } from '@/components/ui/dialog'
@@ -15,6 +16,7 @@ interface AddStockEntryDialogProps {
 export function AddStockEntryDialog({ cartridgeId, defaultUnitPrice }: AddStockEntryDialogProps) {
   const [open, setOpen] = useState(false)
   const [isPending, startTransition] = useTransition()
+  const router = useRouter()
   const formRef = useRef<HTMLFormElement>(null)
 
   // Default date: today
@@ -34,6 +36,7 @@ export function AddStockEntryDialog({ cartridgeId, defaultUnitPrice }: AddStockE
         toast.success('Stok girişi eklendi!')
         form.reset()
         setOpen(false)
+        try { router.refresh() } catch (e) {}
       } catch (err: any) {
         // toast.error(err?.message || 'Bir hata oluştu.')
         toast.error('Bir hata oluştu.')

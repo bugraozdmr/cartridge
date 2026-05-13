@@ -4,15 +4,12 @@ import prisma from '@/lib/prisma'
 import { revalidatePath } from 'next/cache'
 
 async function recalculateStock(cartridgeId: string) {
-  const [inAgg, outAgg] = await Promise.all([
-    prisma.stockEntry.aggregate({ where: { cartridgeId }, _sum: { quantity: true } }),
-    prisma.stockOut.aggregate({ where: { cartridgeId }, _sum: { quantity: true } }),
-  ])
-  const totalIn = inAgg._sum.quantity ?? 0
-  const totalOut = outAgg._sum.quantity ?? 0
+  const cartridge = await prisma.cartridge.findUnique({ where: { id: cartridgeId }, select: { stock: true } })
+  if (!cartridge) return
+
   await prisma.cartridge.update({
     where: { id: cartridgeId },
-    data: { stock: Math.max(0, totalIn - totalOut) },
+    data: { stock: Math.max(0, cartridge.stock) },
   })
 }
 
@@ -28,15 +25,29 @@ export async function addStockEntry(formData: FormData) {
   if (!unitPrice) throw new Error('Birim fiyat gereklidir.')
   if (!entryDateRaw) throw new Error('Tarih seçilmesi zorunludur.')
 
-  await prisma.stockEntry.create({
-    data: {
-      cartridgeId,
-      quantity,
-      unitPrice: parseFloat(unitPrice),
-      entryDate: new Date(entryDateRaw),
-    }
-  })
-  await recalculateStock(cartridgeId)
+  // If the selected entry date is today, merge with current time so that
+  // timestamps reflect the actual moment (avoids midnight-only dates that
+  // can make manual edits appear newer than same-day entries).
+  const now = new Date()
+  let entryDate = new Date(entryDateRaw)
+  if (entryDate.toDateString() === now.toDateString()) {
+    entryDate.setHours(now.getHours(), now.getMinutes(), now.getSeconds(), now.getMilliseconds())
+  }
+
+  await prisma.$transaction([
+    prisma.stockEntry.create({
+      data: {
+        cartridgeId,
+        quantity,
+        unitPrice: parseFloat(unitPrice),
+        entryDate,
+      }
+    }),
+    prisma.cartridge.update({
+      where: { id: cartridgeId },
+      data: { stock: { increment: quantity } },
+    }),
+  ])
   revalidatePath(`/cartridges/${cartridgeId}`)
 }
 
@@ -45,8 +56,16 @@ export async function deleteStockEntry(formData: FormData) {
   const cartridgeId = formData.get('cartridgeId')?.toString()
   if (!id || !cartridgeId) throw new Error('Eksik parametre.')
 
-  await prisma.stockEntry.delete({ where: { id } })
-  await recalculateStock(cartridgeId)
+  const entry = await prisma.stockEntry.findUnique({ where: { id }, select: { quantity: true } })
+  if (!entry) throw new Error('Stok girişi bulunamadı.')
+
+  await prisma.$transaction([
+    prisma.stockEntry.delete({ where: { id } }),
+    prisma.cartridge.update({
+      where: { id: cartridgeId },
+      data: { stock: { decrement: entry.quantity } },
+    }),
+  ])
   revalidatePath(`/cartridges/${cartridgeId}`)
 }
 
@@ -70,18 +89,32 @@ export async function addStockOut(formData: FormData) {
   if (!cartridge) throw new Error('Toner bulunamadı.')
   if (cartridge.stock < quantity) throw new Error(`Yetersiz stok. Mevcut: ${cartridge.stock} adet.`)
 
-  await prisma.stockOut.create({
-    data: {
-      cartridgeId,
-      departmentId,
-      quantity,
-      receiverName,
-      notes,
-      issueDate: new Date(issueDateRaw),
-      ...(printerId ? { printerId } : {}),
+  const now = new Date()
+  const issueDate = (() => {
+    const d = new Date(issueDateRaw)
+    if (d.toDateString() === now.toDateString()) {
+      d.setHours(now.getHours(), now.getMinutes(), now.getSeconds(), now.getMilliseconds())
     }
-  })
-  await recalculateStock(cartridgeId)
+    return d
+  })()
+
+  await prisma.$transaction([
+    prisma.stockOut.create({
+      data: {
+        cartridgeId,
+        departmentId,
+        quantity,
+        receiverName,
+        notes,
+        issueDate,
+        ...(printerId ? { printerId } : {}),
+      }
+    }),
+    prisma.cartridge.update({
+      where: { id: cartridgeId },
+      data: { stock: { decrement: quantity } },
+    }),
+  ])
   revalidatePath(`/cartridges/${cartridgeId}`)
 }
 
@@ -90,7 +123,13 @@ export async function deleteStockOut(formData: FormData) {
   const cartridgeId = formData.get('cartridgeId')?.toString()
   if (!id || !cartridgeId) throw new Error('Eksik parametre.')
 
-  await prisma.stockOut.delete({ where: { id } })
-  await recalculateStock(cartridgeId)
+  const outRecord = await prisma.stockOut.findUnique({ where: { id }, select: { quantity: true } })
+  if (!outRecord) throw new Error('Stok çıkış kaydı bulunamadı.')
+
+  await prisma.$transaction([
+    prisma.stockOut.delete({ where: { id } }),
+    prisma.cartridge.update({ where: { id: cartridgeId }, data: { stock: { increment: outRecord.quantity } } }),
+  ])
+
   revalidatePath(`/cartridges/${cartridgeId}`)
 }

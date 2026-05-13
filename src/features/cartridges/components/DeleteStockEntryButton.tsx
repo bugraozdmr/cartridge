@@ -1,6 +1,7 @@
 'use client'
 
 import { useTransition } from 'react'
+import { useRouter } from 'next/navigation'
 import { Trash2Icon, Loader2Icon } from 'lucide-react'
 import { toast } from 'react-hot-toast'
 import { DeleteDialog } from '@/components/ui/delete-dialog'
@@ -8,6 +9,7 @@ import { deleteStockEntry } from '../stock-actions'
 
 export function DeleteStockEntryButton({ id, cartridgeId }: { id: string; cartridgeId: string }) {
   const [isPending, startTransition] = useTransition()
+  const router = useRouter()
 
   return (
     <DeleteDialog
@@ -21,6 +23,7 @@ export function DeleteStockEntryButton({ id, cartridgeId }: { id: string; cartri
             fd.append('cartridgeId', cartridgeId)
             await deleteStockEntry(fd)
             toast.success('Stok girişi silindi.')
+            try { router.refresh() } catch (e) {}
             resolve()
           } catch {
             toast.error('Silinemedi.')
